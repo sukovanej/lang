@@ -1,9 +1,6 @@
 package interpreter
 
 import (
-	"math"
-    "errors"
-    "fmt"
 )
 
 var MetaObject = &Object{Type: TYPE_OBJECT}
@@ -18,99 +15,32 @@ var TupleMetaObject = &Object{Type: TYPE_TUPLE, Meta: MetaObject}
 var TrueObject = &Object{Type: TYPE_BOOL, Meta: MetaObject}
 var FalseObject = &Object{Type: TYPE_BOOL, Meta: MetaObject}
 
-func (o *Object) GetNumber() (int64, error) {
-	//fmt.Printf("%v %T\n", o.Value, o.Value)
-    if number, ok := o.Value.(int64); ok {
-        return number, nil
-    } else {
-        return 0, errors.New(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value))
-    }
+
+func BuiltInPlus(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Slots["__plus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+}
+func BuiltInMinus(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Slots["__minus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+}
+func BuiltInAsterisk(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Slots["__asterisk__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+}
+func BuiltInSlash(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Slots["__slash__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+}
+func BuiltInModulo(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Slots["__modulo__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+}
+func BuiltInPower(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Slots["__power__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
 }
 
-func (o *Object) GetFloat() (float64, error) {
-	//fmt.Printf("%v %T\n", o.Value, o.Value)
-    if number, ok := o.Value.(float64); ok {
-        return number, nil
-    } else if number, ok := o.Value.(int64); ok {
-        return float64(number), nil
-    } else {
-        return 0, errors.New(fmt.Sprintf("Cant convert %q to number", o.Value))
-    }
-}
+func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
+    value, err := evaluateAST(input[1], scope)
+    scope.Symbols[input[0].Value.Value] = value
+    if err != nil { return nil, err }
 
-func BuiltInPlus(input [](*Object), scope *Scope) (*Object) {
-    if input[0].Type == TYPE_FLOAT || input[0].Type == TYPE_FLOAT {
-        left_value, _ := input[0].GetFloat()
-        right_value, _ := input[1].GetFloat()
-
-        return &Object{Type: TYPE_FLOAT, Value: left_value + right_value, Meta: FloatMetaObject}
-    } else {
-        left_value, _ := input[0].GetNumber()
-        right_value, _ := input[1].GetNumber()
-
-        return &Object{Type: TYPE_NUMBER, Value: left_value + right_value, Meta: NumberMetaObject}
-    }
-}
-
-func BuiltInMinus(input [](*Object), scope *Scope) (*Object) {
-    if input[0].Type == TYPE_FLOAT || input[0].Type == TYPE_FLOAT {
-        left_value, _ := input[0].GetFloat()
-        right_value, _ := input[1].GetFloat()
-
-        return &Object{Type: TYPE_FLOAT, Value: left_value - right_value, Meta: FloatMetaObject}
-    } else {
-        left_value, _ := input[0].GetNumber()
-        right_value, _ := input[1].GetNumber()
-
-        return &Object{Type: TYPE_NUMBER, Value: left_value - right_value, Meta: NumberMetaObject}
-    }
-}
-
-func BuiltInAsterisk(input [](*Object), scope *Scope) (*Object) {
-    if input[0].Type == TYPE_FLOAT || input[0].Type == TYPE_FLOAT {
-        left_value, _ := input[0].GetFloat()
-        right_value, _ := input[1].GetFloat()
-
-        return &Object{Type: TYPE_FLOAT, Value: left_value * right_value, Meta: FloatMetaObject}
-    } else {
-        left_value, _ := input[0].GetNumber()
-        right_value, _ := input[1].GetNumber()
-
-        return &Object{Type: TYPE_NUMBER, Value: left_value * right_value, Meta: NumberMetaObject}
-    }
-}
-
-func BuiltInSlash(input [](*Object), scope *Scope) (*Object) {
-    if input[0].Type == TYPE_FLOAT || input[0].Type == TYPE_FLOAT {
-        left_value, _ := input[0].GetFloat()
-        right_value, _ := input[1].GetFloat()
-
-        return &Object{Type: TYPE_FLOAT, Value: left_value / right_value, Meta: FloatMetaObject}
-    } else {
-        left_value, _ := input[0].GetNumber()
-        right_value, _ := input[1].GetNumber()
-
-        return &Object{Type: TYPE_NUMBER, Value: left_value / right_value, Meta: NumberMetaObject}
-    }
-}
-
-func BuiltInModulo(input [](*Object), scope *Scope) (*Object) {
-	left_value, _ := input[0].GetNumber()
-	right_value, _ := input[1].GetNumber()
-
-	return &Object{Type: TYPE_NUMBER, Value: left_value * right_value, Meta: NumberMetaObject}
-}
-
-func BuiltInPower(input [](*Object), scope *Scope) (*Object) {
-	left_value, _ := input[0].GetFloat()
-	right_value, _ := input[1].GetFloat()
-
-	return &Object{Type: TYPE_FLOAT, Value: math.Pow(left_value, right_value), Meta: FloatMetaObject}
-}
-
-func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object) {
-	scope.Symbols[input[0].Value.Value] = evaluateAST(input[1], scope)
-	return scope.Symbols[input[0].Value.Value]
+	return value, nil
 }
 
 func CreateBinaryOperatorMetaObject(callable ObjectCallable) (*Object) {
@@ -139,6 +69,21 @@ func CreateBinaryFormMetaObject(callable ObjectFormCallable) (*Object) {
 				Slots: map[string](*Object){
 					"__form__": TrueObject,
 				},
+			},
+		},
+	}
+
+	return object
+}
+
+func CreateCallable(callable ObjectCallable) (*Object) {
+	object := &Object{
+		Meta: MetaObject,
+		Slots: map[string](*Object){
+			"__call__": &Object{
+				Meta: MetaObject,
+				Value: callable,
+				Type: TYPE_CALLABLE,
 			},
 		},
 	}

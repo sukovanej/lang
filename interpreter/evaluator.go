@@ -2,8 +2,8 @@ package interpreter
 
 import (
     "bufio"
-	"strconv"
-	//"fmt"
+    "errors"
+    "strconv"
 )
 
 type ObjectType int
@@ -33,8 +33,8 @@ type Scope struct {
     Symbols map[string](*Object)
 }
 
-type ObjectCallable func([](*Object), *Scope)(*Object)
-type ObjectFormCallable func([](*AST), *Scope)(*Object)
+type ObjectCallable func([](*Object), *Scope)(*Object, error)
+type ObjectFormCallable func([](*AST), *Scope)(*Object, error)
 
 func (scope *Scope) SearchSymbol(name string) *Object {
     if val, ok := scope.Symbols[name]; ok {
@@ -52,27 +52,39 @@ func Evaluate(buffer *bufio.Reader, scope *Scope) (*Object, error) {
     ast, err := GetNextAST(buffer)
     if err != nil { return nil, err }
 
-    return evaluateAST(ast, scope), nil
+    return evaluateAST(ast, scope)
 }
 
-func evaluateAST(ast *AST, scope *Scope) *Object {
+func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
     if ast.Value.Type == NUMBER {
-		value, err := strconv.ParseInt(ast.Value.Value, 0, 64)
+        number, err := strconv.ParseInt(ast.Value.Value, 0, 64)
+        if err != nil {
+            return nil, err
+        }
+
+        object, err := NewNumberObject(number)
 		if err != nil { panic(err) }
-		return &Object{Value: value, Type: TYPE_NUMBER}
+
+		return object, nil
     } else if ast.Value.Type == FLOAT_NUMBER {
-		value, err := strconv.ParseFloat(ast.Value.Value, 64)
+		number, err := strconv.ParseFloat(ast.Value.Value, 64)
+        if err != nil {
+            return nil, err
+        }
+
+        object, err := NewFloatObject(number)
 		if err != nil { panic(err) }
-		return &Object{Value: value, Type: TYPE_FLOAT}
+
+		return object, nil
     } else if ast.Value.Type == IDENTIFIER {
 		object := scope.SearchSymbol(ast.Value.Value)
 
 		if object != nil {
 			if ast.Left == nil && ast.Right == nil {
-				return object
+				return object, nil
 			}
 		} else {
-			panic("Runtime error: symbol " + ast.Value.Value + " not found")
+            return nil, errors.New("Runtime error")
 		}
 	} else if ast.Value.Type == SIGN {
 		object := scope.SearchSymbol(ast.Value.Value)
@@ -86,10 +98,12 @@ func evaluateAST(ast *AST, scope *Scope) *Object {
 							scope,
 						)
 					} else {
-						return callable.Value.(ObjectCallable)(
-							[](*Object){ evaluateAST(ast.Left, scope), evaluateAST(ast.Right, scope) },
-							scope,
-						)
+                        left, err := evaluateAST(ast.Left, scope)
+                        if err != nil { return nil, err }
+                        right, err := evaluateAST(ast.Right, scope)
+                        if err != nil { return nil, err }
+
+						return callable.Value.(ObjectCallable)( [](*Object){ left, right }, scope)
 					}
 				}
 			}
@@ -97,10 +111,11 @@ func evaluateAST(ast *AST, scope *Scope) *Object {
 			panic("Runtime error: symbol '" + ast.Value.Value + "' not found")
 		}
 	} else if ast.Value.Type == NEWLINE {
-		left := evaluateAST(ast.Left, scope)
+		left, err := evaluateAST(ast.Left, scope)
+        if err != nil { return nil, err }
 
 		if ast.Right == nil {
-			return left
+			return left, nil
 		} else {
 			return evaluateAST(ast.Right, scope)
 		}
