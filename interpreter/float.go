@@ -63,12 +63,12 @@ func NewFloatObject(value float64) (*Object, error) {
         Value: value,
         Type: TYPE_FLOAT,
         Slots: map[string](*Object) {
-            "__string__": CreateCallable(FloatObjectString),
-            "__plus__": CreateCallable(BuiltInFloatPlus),
-            "__minus__": CreateCallable(BuiltInFloatMinus),
-            "__asterisk__": CreateCallable(BuiltInFloatAsterisk),
-            "__slash__": CreateCallable(BuiltInFloatSlash),
-            "__power__": CreateCallable(BuiltInFloatPower),
+            "__string__": CreateCallable("__string__", FloatObjectString),
+            "__plus__": CreateCallable("__plus__", BuiltInFloatPlus),
+            "__minus__": CreateCallable("__minus__", BuiltInFloatMinus),
+            "__asterisk__": CreateCallable("__asterisk__", BuiltInFloatAsterisk),
+            "__slash__": CreateCallable("__slash__", BuiltInFloatSlash),
+            "__power__": CreateCallable("__power__", BuiltInFloatPower),
         },
     }, nil
 }

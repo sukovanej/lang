@@ -22,7 +22,7 @@ func compareObjects(o1, o2 *i.Object) bool {
 
 		return n1 == n2 && o1.Type == o2.Type
 	} else {
-		return false
+		return o1 == o2
 	}
 }
 

@@ -68,13 +68,13 @@ func NewNumberObject(value int64) (*Object, error) {
         Value: value,
         Type: TYPE_NUMBER,
         Slots: map[string](*Object) {
-            "__string__": CreateCallable(NumberObjectString),
-            "__plus__": CreateCallable(BuiltInNumberPlus),
-            "__minus__": CreateCallable(BuiltInNumberMinus),
-            "__asterisk__": CreateCallable(BuiltInNumberAsterisk),
-            "__slash__": CreateCallable(BuiltInNumberSlash),
-            "__modulo__": CreateCallable(BuiltInNumberModulo),
-            "__power__": CreateCallable(BuiltInNumberPower),
+            "__string__": CreateCallable("__string__", NumberObjectString),
+            "__plus__": CreateCallable("__plus__", BuiltInNumberPlus),
+            "__minus__": CreateCallable("__minus__", BuiltInNumberMinus),
+            "__asterisk__": CreateCallable("__asterisk__", BuiltInNumberAsterisk),
+            "__slash__": CreateCallable("__slash__", BuiltInNumberSlash),
+            "__modulo__": CreateCallable("__modulo__", BuiltInNumberModulo),
+            "__power__": CreateCallable("__power__", BuiltInNumberPower),
         },
     }, nil
 }

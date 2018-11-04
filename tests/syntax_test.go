@@ -602,3 +602,15 @@ x = 1`))
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+func TestGetNextASTSimpleFunctionCallExpr(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("meta(12)"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+		Left: &i.AST{Value: &i.Token{"meta", i.IDENTIFIER}},
+		Right: &i.AST{Value: &i.Token{"12", i.NUMBER}},
+		Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+	}
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

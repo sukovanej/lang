@@ -3,6 +3,7 @@ package interpreter
 import (
     "bufio"
     "errors"
+    //"fmt"
     "strconv"
 )
 
@@ -86,6 +87,22 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		} else {
             return nil, errors.New("Runtime error")
 		}
+    } else if ast.Value.Type == SIGN && ast.Value.Value == "," {
+        last := ast
+        var objectList [](*Object)
+
+        for last.Right != nil {
+            newObject, err := evaluateAST(last.Left, scope)
+            if err != nil { return nil, err }
+            objectList = append(objectList, newObject)
+            last = last.Right
+        }
+
+        newObject, err := evaluateAST(last.Left, scope)
+        if err != nil { return nil, err }
+        objectList = append(objectList, newObject)
+
+        return NewTupleObject(objectList)
 	} else if ast.Value.Type == SIGN {
 		object := scope.SearchSymbol(ast.Value.Value)
 
@@ -106,7 +123,9 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 						return callable.Value.(ObjectCallable)( [](*Object){ left, right }, scope)
 					}
 				}
-			}
+			} else if ast.Left == nil && ast.Right == nil {
+                return object, nil
+            }
 		} else {
 			panic("Runtime error: symbol '" + ast.Value.Value + "' not found")
 		}
@@ -119,7 +138,27 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		} else {
 			return evaluateAST(ast.Right, scope)
 		}
-	}
+	} else if ast.Value.Type == SPECIAL_FUNCTION_CALL {
+        callableObject, err := evaluateAST(ast.Left, scope)
+        if err != nil { return nil, err }
+
+        argumentsObject, err := evaluateAST(ast.Right, scope)
+        if err != nil { return nil, err }
+
+        if argumentsObject.Type != TYPE_TUPLE {
+            argumentsObject, err = NewTupleObject([](*Object){argumentsObject})
+            if err != nil { return nil, err }
+        }
+
+        if callable, ok := callableObject.Slots["__call__"]; ok {
+            arguments, err := argumentsObject.GetTuple()
+            if err != nil { return nil, err }
+
+            return callable.Value.(ObjectCallable)(arguments, scope)
+        }
+
+        return nil, errors.New("Runtime error: " + ast.Left.Value.Value + " is not callable")
+    }
 
 	panic("Runtime error")
 }

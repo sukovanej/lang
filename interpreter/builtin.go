@@ -1,19 +1,29 @@
 package interpreter
 
 import (
+    //"fmt"
 )
+
+func staticStringRepr(value string) (*Object) {
+    return CreateCallable("__string__", func(input [](*Object), scope *Scope)(*Object, error) {
+        return NewStringObject(value)
+    })
+}
 
 var MetaObject = &Object{Type: TYPE_OBJECT}
 
-var NumberMetaObject = &Object{Type: TYPE_NUMBER, Meta: MetaObject}
-var FloatMetaObject = &Object{Type: TYPE_FLOAT, Meta: MetaObject}
-var StringMetaObject = &Object{Type: TYPE_STRING, Meta: MetaObject}
-var ListMetaObject = &Object{Type: TYPE_LIST, Meta: MetaObject}
-var MapMetaObject = &Object{Type: TYPE_MAP, Meta: MetaObject}
-var TupleMetaObject = &Object{Type: TYPE_TUPLE, Meta: MetaObject}
+var NumberMetaObject = &Object{Type: TYPE_OBJECT, Meta: MetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("<type number>") }}
+var FloatMetaObject = &Object{Type: TYPE_OBJECT, Meta: MetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("<type float>") }}
+var StringMetaObject = &Object{Type: TYPE_OBJECT, Meta: MetaObject}
+var ListMetaObject = &Object{Type: TYPE_OBJECT, Meta: MetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("<type list>") }}
+var MapMetaObject = &Object{Type: TYPE_OBJECT, Meta: MetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("<type map>") }}
+var TupleMetaObject = &Object{Type: TYPE_OBJECT, Meta: MetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("<type tuple>") }}
+var BoolMetaObject = &Object{Type: TYPE_OBJECT, Meta: MetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("<type bool>") }}
 
-var TrueObject = &Object{Type: TYPE_BOOL, Meta: MetaObject}
-var FalseObject = &Object{Type: TYPE_BOOL, Meta: MetaObject}
+var NilObject = &Object{Type: TYPE_BOOL, Meta: MetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("nil") }}
+
+var TrueObject = &Object{Type: TYPE_BOOL, Meta: BoolMetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("true") }}
+var FalseObject = &Object{Type: TYPE_BOOL, Meta: BoolMetaObject, Slots: map[string](*Object) { "__string__": staticStringRepr("false") }}
 
 
 func BuiltInPlus(input [](*Object), scope *Scope) (*Object, error) {
@@ -43,7 +53,7 @@ func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
 	return value, nil
 }
 
-func CreateBinaryOperatorMetaObject(callable ObjectCallable) (*Object) {
+func CreateBinaryOperatorMetaObject(name string, callable ObjectCallable) (*Object) {
 	object := &Object{
 		Meta: MetaObject,
 		Slots: map[string](*Object){
@@ -52,13 +62,14 @@ func CreateBinaryOperatorMetaObject(callable ObjectCallable) (*Object) {
 				Value: callable,
 				Type: TYPE_CALLABLE,
 			},
+            "__string__": staticStringRepr("<object " + name + ">"),
 		},
 	}
 
 	return object
 }
 
-func CreateBinaryFormMetaObject(callable ObjectFormCallable) (*Object) {
+func CreateBinaryFormMetaObject(name string, callable ObjectFormCallable) (*Object) {
 	object := &Object{
 		Meta: MetaObject,
 		Slots: map[string](*Object){
@@ -70,13 +81,14 @@ func CreateBinaryFormMetaObject(callable ObjectFormCallable) (*Object) {
 					"__form__": TrueObject,
 				},
 			},
+            "__string__": staticStringRepr("<object " + name + ">"),
 		},
 	}
 
 	return object
 }
 
-func CreateCallable(callable ObjectCallable) (*Object) {
+func CreateCallable(name string, callable ObjectCallable) (*Object) {
 	object := &Object{
 		Meta: MetaObject,
 		Slots: map[string](*Object){
@@ -91,15 +103,19 @@ func CreateCallable(callable ObjectCallable) (*Object) {
 	return object
 }
 
+func BuiltInMeta(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Meta, nil
+}
+
 var BuiltInScope = &Scope{
     Symbols: map[string](*Object){
-        "+": &Object{ Meta: CreateBinaryOperatorMetaObject(BuiltInPlus) },
-        "-": &Object{ Meta: CreateBinaryOperatorMetaObject(BuiltInMinus) },
-        "*": &Object{ Meta: CreateBinaryOperatorMetaObject(BuiltInAsterisk) },
-        "/": &Object{ Meta: CreateBinaryOperatorMetaObject(BuiltInSlash) },
-        "%": &Object{ Meta: CreateBinaryOperatorMetaObject(BuiltInModulo) },
-        "^": &Object{ Meta: CreateBinaryOperatorMetaObject(BuiltInPower) },
-        "=": &Object{ Meta: CreateBinaryFormMetaObject(BuiltInDefineForm) },
+        "+": &Object{ Meta: CreateBinaryOperatorMetaObject("+", BuiltInPlus) },
+        "-": &Object{ Meta: CreateBinaryOperatorMetaObject("-", BuiltInMinus) },
+        "*": &Object{ Meta: CreateBinaryOperatorMetaObject("*", BuiltInAsterisk) },
+        "/": &Object{ Meta: CreateBinaryOperatorMetaObject("/", BuiltInSlash) },
+        "%": &Object{ Meta: CreateBinaryOperatorMetaObject("%", BuiltInModulo) },
+        "^": &Object{ Meta: CreateBinaryOperatorMetaObject("^", BuiltInPower) },
+        "=": &Object{ Meta: CreateBinaryFormMetaObject("=", BuiltInDefineForm) },
 
         "object": MetaObject,
         "num": NumberMetaObject,
@@ -109,7 +125,10 @@ var BuiltInScope = &Scope{
         "map": MapMetaObject,
         "tuple": TupleMetaObject,
 
-        "type": &Object{},
+        "true": TrueObject,
+        "false": FalseObject,
+
+        "meta": CreateCallable("meta", BuiltInMeta),
         "print": &Object{},
     },
 }

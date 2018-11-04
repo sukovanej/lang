@@ -6,8 +6,8 @@ import (
 )
 
 func (o *Object) GetString() (string, error) {
-    if number, ok := o.Value.(string); ok {
-        return number, nil
+    if str, ok := o.Value.(string); ok {
+        return str, nil
     } else {
         return "", errors.New(fmt.Sprintf("Cant convert %v (%T) to string", o.Value, o.Value))
     }
@@ -23,7 +23,7 @@ func NewStringObject(value string) (*Object, error) {
         Value: value,
         Type: TYPE_STRING,
         Slots: map[string](*Object) {
-            "__string__": CreateCallable(StringObjectString),
+            "__string__": CreateCallable("__string__", StringObjectString),
         },
     }, nil
 }
