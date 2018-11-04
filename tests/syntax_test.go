@@ -538,3 +538,67 @@ func TestGetNextASTTypeOperator(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTSimpleMultilineExpression(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+x = 1`))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+        Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+        Value: &i.Token{"=", i.SIGN},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTSimpleMultilineExpressionTwoLines(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+x = 1 + 1
+x = 1`))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+		Left: &i.AST{
+			Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+			Right: &i.AST{
+				Left: &i.AST{Value: &i.Token{"1", i.IDENTIFIER}},
+				Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+				Value: &i.Token{"+", i.SIGN},
+			},
+			Value: &i.Token{"=", i.SIGN},
+		},
+		Right: &i.AST{
+			Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+			Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+			Value: &i.Token{"=", i.SIGN},
+		},
+		Value: &i.Token{"\n", i.NEWLINE},
+	}
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTSimpleMultilineExpressionTwoLinesSimpler(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+x = 1
+x = 1`))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+		Left: &i.AST{
+			Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+			Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+			Value: &i.Token{"=", i.SIGN},
+		},
+		Right: &i.AST{
+			Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+			Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+			Value: &i.Token{"=", i.SIGN},
+		},
+		Value: &i.Token{"\n", i.NEWLINE},
+	}
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

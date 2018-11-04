@@ -435,3 +435,37 @@ func TestGetNextTokenSimpleFunctionDefinition(t *testing.T) {
     expected = &i.Token{"b", i.IDENTIFIER}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }
+
+func TestGetNextTokenSimpleMultilineDefine(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+x = 1 + 2
+`))
+
+    token, _ := i.GetNextToken(inputBuffer)
+    expected := &i.Token{"\n", i.NEWLINE}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"x", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"=", i.SIGN}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"1", i.NUMBER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"+", i.SIGN}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"2", i.NUMBER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"\n", i.NEWLINE}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+}
