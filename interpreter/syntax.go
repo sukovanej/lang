@@ -39,7 +39,18 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "\n": 0,
 }
 
+func removeTrailingWhitespaces(buffer *bufio.Reader) {
+	val, _, err := buffer.ReadRune()
+
+	for err == nil && val == '\n' {
+		val, _, err = buffer.ReadRune()
+	}
+
+	buffer.UnreadRune()
+}
+
 func GetNextAST(buffer *bufio.Reader) (*AST, error) {
+	removeTrailingWhitespaces(buffer)
     result, err, _ := getNextAST(buffer, nil, SPECIAL_NONE)
     return result, err
 }
@@ -47,11 +58,6 @@ func GetNextAST(buffer *bufio.Reader) (*AST, error) {
 func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, error, bool) {
     left, err := GetNextToken(buffer)
     if err != nil { return nil, err, false }
-
-	for left.Type == NEWLINE {
-		left, err = GetNextToken(buffer)
-		if err != nil { return nil, err, false }
-	}
 
     var leftAST *AST
     if left.Type == BRACKET_BRACKET_LEFT || left.Type == SQUARE_BRACKET_LEFT || left.Type == CURLY_BRACKET_LEFT {
@@ -80,7 +86,6 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
     } else {
         leftAST = &AST{Value: left, Parent: last}
     }
-
 
 	if left.Value == "type" {
 		typeName, err := GetNextToken(buffer)
@@ -116,16 +121,16 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
     var ast *AST
     overwrite := false
     if last != nil && BuiltInWeights[middle.Value] < BuiltInWeights[last.Value.Value] {
-        newParent := last.Parent
+        newParent := last
 
-        for newParent != nil && BuiltInWeights[middle.Value] < BuiltInWeights[newParent.Value.Value] {
+        for newParent.Parent != nil && BuiltInWeights[middle.Value] < BuiltInWeights[newParent.Value.Value] {
             newParent = newParent.Parent
         }
 
         last.Right = leftAST
 
-        if newParent == nil {
-            ast = &AST{Left: last, Parent: nil, Value: middle}
+        if newParent.Parent == nil {
+            ast = &AST{Left: newParent, Parent: nil, Value: middle}
             overwrite = true
         } else {
             ast = &AST{Left: newParent.Right, Parent: newParent, Value: middle}
@@ -139,13 +144,11 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
         }
     }
 
-	//fmt.Println(ast)
+    newAST, _, overwriteByLowerAST := getNextAST(buffer, ast, pairToken)
 
-    newAST, _, overwriteBy := getNextAST(buffer, ast, pairToken)
-
-    if overwriteBy {
+    if overwriteByLowerAST {
         ast = newAST
     }
 
-    return ast, nil, overwrite
+    return ast, nil, overwrite || overwriteByLowerAST
 }

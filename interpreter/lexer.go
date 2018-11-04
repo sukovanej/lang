@@ -129,7 +129,6 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
 
     Loop: for {
         newValue, _, err := buffer.ReadRune()
-        if err != nil { break }
         newType := GetTokenType(newValue)
 
         //fmt.Printf("%q, %v\n", previousValue, previousType.String())
@@ -185,9 +184,18 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
                 break Loop
             }
         case NEWLINE:
+			if err != nil {
+				previousType = EOF
+				valueBuffer.Reset()
+				break Loop
+			}
+
             for newType == NEWLINE || newType == GAP {
                 newValue, _, err = buffer.ReadRune()
-                if err != nil { break }
+                if err != nil {
+					previousType = EOF
+					valueBuffer.Reset()
+				}
                 newType = GetTokenType(newValue)
             }
 

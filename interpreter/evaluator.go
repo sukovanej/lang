@@ -3,7 +3,7 @@ package interpreter
 import (
     "bufio"
 	"strconv"
-	"fmt"
+	//"fmt"
 )
 
 type ObjectType int
@@ -81,7 +81,6 @@ func evaluateAST(ast *AST, scope *Scope) *Object {
 			if ast.Left != nil && ast.Right != nil {
 				if callable, ok := object.Meta.Slots["__binary__"]; ok {
 					if form, ok :=callable.Slots["__form__"]; ok && form == TrueObject {
-						fmt.Println(ast)
 						return callable.Value.(ObjectFormCallable)(
 							[](*AST){ ast.Left, ast.Right },
 							scope,
