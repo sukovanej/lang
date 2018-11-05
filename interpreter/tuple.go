@@ -25,6 +25,7 @@ func TupleObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
         if err != nil { return nil, err }
         result += stringRepr + ", "
     }
+    result = result[:len(result) - 2]
     result += ")"
 
     return NewStringObject(result)

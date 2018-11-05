@@ -38,6 +38,7 @@ const (
     SPECIAL_LIST
     SPECIAL_BLOCK
     SPECIAL_FUNCTION_CALL
+    SPECIAL_TUPLE
     SPECIAL_LAMBDA
     SPECIAL_TYPE
     SPECIAL_RETURN
@@ -72,6 +73,7 @@ func (t *TokenType) String() string {
         case SPECIAL_LIST: return "SPECiAL_LIST"
         case SPECIAL_BLOCK: return "SPECIAL_BLOCK"
         case SPECIAL_FUNCTION_CALL: return "SPECIAL_FUNCTION_CALL"
+        case SPECIAL_TUPLE: return "SPECIAL_TUPLE"
         case SPECIAL_LAMBDA: return "SPECIAL_LAMBDA"
         case SPECIAL_TYPE: return "SPECIAL_TYPE"
         case SPECIAL_RETURN: return "SPECIAL_RETURN"

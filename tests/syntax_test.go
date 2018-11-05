@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
     "bufio"
@@ -306,7 +306,7 @@ func TestGetNextASTAsteriskPlusExpr(t *testing.T) {
 }
 
 func TestGetNextASTTuple(t *testing.T) {
-    inputBuffer := bufio.NewReader(strings.NewReader("1+1, 1,1"))
+    inputBuffer := bufio.NewReader(strings.NewReader("(1+1, 1,1)"))
 
     ast, _ := i.GetNextAST(inputBuffer)
     expected := &i.AST{
@@ -320,7 +320,7 @@ func TestGetNextASTTuple(t *testing.T) {
             Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
             Value: &i.Token{",", i.SIGN},
         },
-        Value: &i.Token{",", i.SIGN},
+        Value: &i.Token{",", i.SPECIAL_TUPLE},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -410,7 +410,7 @@ func TestGetNextASTFunctionCall(t *testing.T) {
         Right: &i.AST{
 			Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
 			Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-			Value: &i.Token{",", i.SIGN},
+			Value: &i.Token{",", i.SPECIAL_TUPLE},
 		},
 		Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
     }
@@ -430,7 +430,7 @@ func TestGetNextASTFunctionDefinition(t *testing.T) {
 			Right: &i.AST{
 				Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
 				Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-				Value: &i.Token{",", i.SIGN},
+				Value: &i.Token{",", i.SPECIAL_TUPLE},
 			},
 			Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
 		},
@@ -508,7 +508,7 @@ func TestGetNextASTTypeOperator(t *testing.T) {
 								Right: &i.AST{Value: &i.Token{"right", i.IDENTIFIER}},
 								Value: &i.Token{",", i.SIGN},
 							},
-							Value: &i.Token{",", i.SIGN},
+							Value: &i.Token{",", i.SPECIAL_TUPLE},
 						},
 						Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
 					},
@@ -519,7 +519,7 @@ func TestGetNextASTTypeOperator(t *testing.T) {
 								Right: &i.AST{
 									Left: &i.AST{Value: &i.Token{"left", i.IDENTIFIER}},
 									Right: &i.AST{Value: &i.Token{"right", i.IDENTIFIER}},
-									Value: &i.Token{",", i.SIGN},
+									Value: &i.Token{",", i.SPECIAL_TUPLE},
 								},
 								Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
 							},
@@ -602,6 +602,7 @@ x = 1`))
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
 func TestGetNextASTSimpleFunctionCallExpr(t *testing.T) {
     inputBuffer := bufio.NewReader(strings.NewReader("meta(12)"))
 
@@ -610,6 +611,86 @@ func TestGetNextASTSimpleFunctionCallExpr(t *testing.T) {
 		Left: &i.AST{Value: &i.Token{"meta", i.IDENTIFIER}},
 		Right: &i.AST{Value: &i.Token{"12", i.NUMBER}},
 		Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+	}
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTSimpleTuple(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("(1, 2, 3)"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
+            Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
+            Value: &i.Token{",", i.SIGN},
+        },
+        Value: &i.Token{",", i.SPECIAL_TUPLE},
+	}
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTSimpleTupleWithPlus(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("(1, 1 + 1)"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Value: &i.Token{"+", i.SIGN},
+        },
+        Value: &i.Token{",", i.SPECIAL_TUPLE},
+	}
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTSimpleTupleWithPlusPlusPlus(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("(1, 1 + 1, 1 + 1 + 1)"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Right: &i.AST{
+                Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Value: &i.Token{"+", i.SIGN},
+            },
+            Value: &i.Token{",", i.SIGN},
+        },
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Right: &i.AST{
+                Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Value: &i.Token{"+", i.SIGN},
+            },
+            Value: &i.Token{"+", i.SIGN},
+        },
+        Value: &i.Token{",", i.SPECIAL_TUPLE},
+	}
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTSimpleTupleInTuple(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("((1, 1), 1)"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Value: &i.Token{",", i.SPECIAL_TUPLE},
+        },
+        Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+        Value: &i.Token{",", i.SPECIAL_TUPLE},
 	}
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }

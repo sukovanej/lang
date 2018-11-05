@@ -87,20 +87,14 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		} else {
             return nil, errors.New("Runtime error")
 		}
-    } else if ast.Value.Type == SIGN && ast.Value.Value == "," {
-        last := ast
+    } else if ast.Value.Type == SPECIAL_TUPLE && ast.Value.Value == "," {
         var objectList [](*Object)
 
-        for last.Right != nil {
-            newObject, err := evaluateAST(last.Left, scope)
-            if err != nil { return nil, err }
-            objectList = append(objectList, newObject)
-            last = last.Right
-        }
-
-        newObject, err := evaluateAST(last.Left, scope)
+        objectList, err := evaluateASTTuple(ast.Left, scope, objectList)
         if err != nil { return nil, err }
-        objectList = append(objectList, newObject)
+
+        objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
+        if err != nil { return nil, err }
 
         return NewTupleObject(objectList)
 	} else if ast.Value.Type == SIGN {
@@ -161,4 +155,21 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
     }
 
 	panic("Runtime error")
+}
+
+func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Object), error) {
+    if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == "," {
+        objectList, err := evaluateASTTuple(ast.Left, scope, objectList)
+        if err != nil { return nil, err }
+
+        objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
+        if err != nil { return nil, err }
+
+        return objectList, nil
+    } else {
+        object, err := evaluateAST(ast, scope)
+        if err != nil { return nil, err }
+        objectList = append(objectList, object)
+        return objectList, nil
+    }
 }

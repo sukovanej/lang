@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
     "bufio"
@@ -8,23 +8,6 @@ import (
 
     i "github.com/sukovanej/lang/interpreter"
 )
-
-func compareObjects(o1, o2 *i.Object) bool {
-	//fmt.Println(o1, o2)
-	if o1.Type == i.TYPE_NUMBER {
-		n1, _ := o1.GetNumber()
-		n2, _ := o2.GetNumber()
-
-		return n1 == n2 && o1.Type == o2.Type
-	} else if o1.Type == i.TYPE_FLOAT {
-		n1, _ := o1.GetFloat()
-		n2, _ := o2.GetFloat()
-
-		return n1 == n2 && o1.Type == o2.Type
-	} else {
-		return o1 == o2
-	}
-}
 
 func TestEvaluateNumberExpression(t *testing.T) {
     obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("4")), i.BuiltInScope)

@@ -109,7 +109,16 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
 		leftAST = &AST{Left: leftAST, Right: argumentsAST, Value: &Token{"", SPECIAL_FUNCTION_CALL}}
 
 		middle, _ = GetNextToken(buffer)
-	}
+	} else if middle.Type == SIGN && middle.Value == "," && pairToken == BRACKET_BRACKET_RIGHT { // is initial tuple token
+        newLast := last
+        for newLast!= nil && newLast.Value.Type != SPECIAL_TUPLE && (newLast.Value.Type != SIGN || newLast.Value.Value != ",") {
+            newLast = last.Parent
+        }
+
+        if newLast == nil {
+            middle.Type = SPECIAL_TUPLE
+        }
+    }
 
     if middle.Type == EOF || middle.Type == pairToken {
         if last != nil {
@@ -131,6 +140,10 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
 
         if newParent.Parent == nil {
             ast = &AST{Left: newParent, Parent: nil, Value: middle}
+            if newParent.Value.Type == SPECIAL_TUPLE && isTupleSign(middle) {
+                newParent.Value.Type = SIGN
+                ast.Value.Type = SPECIAL_TUPLE
+            }
             overwrite = true
         } else {
             ast = &AST{Left: newParent.Right, Parent: newParent, Value: middle}
@@ -151,4 +164,8 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
     }
 
     return ast, nil, overwrite || overwriteByLowerAST
+}
+
+func isTupleSign(token *Token) bool {
+    return token.Type == SIGN && token.Value == ","
 }
