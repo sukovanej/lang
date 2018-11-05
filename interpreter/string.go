@@ -18,12 +18,7 @@ func StringObjectString(input [](*Object), scope *Scope) (*Object, error) {
 }
 
 func NewStringObject(value string) (*Object, error) {
-    return &Object{
-        Meta: StringMetaObject,
-        Value: value,
-        Type: TYPE_STRING,
-        Slots: map[string](*Object) {
-            "__string__": CreateCallable("__string__", StringObjectString),
-        },
-    }, nil
+    return NewObject(TYPE_STRING, value, StringMetaObject, map[string](*Object) {
+        "__string__": NewCallable("__string__", StringObjectString),
+    }), nil
 }

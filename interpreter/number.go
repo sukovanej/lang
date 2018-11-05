@@ -63,18 +63,13 @@ func NumberObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
 }
 
 func NewNumberObject(value int64) (*Object, error) {
-    return &Object{
-        Meta: NumberMetaObject,
-        Value: value,
-        Type: TYPE_NUMBER,
-        Slots: map[string](*Object) {
-            "__string__": CreateCallable("__string__", NumberObjectString),
-            "__plus__": CreateCallable("__plus__", BuiltInNumberPlus),
-            "__minus__": CreateCallable("__minus__", BuiltInNumberMinus),
-            "__asterisk__": CreateCallable("__asterisk__", BuiltInNumberAsterisk),
-            "__slash__": CreateCallable("__slash__", BuiltInNumberSlash),
-            "__modulo__": CreateCallable("__modulo__", BuiltInNumberModulo),
-            "__power__": CreateCallable("__power__", BuiltInNumberPower),
-        },
-    }, nil
+    return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
+        "__string__": NewCallable("__string__", NumberObjectString),
+        "__plus__": NewCallable("__plus__", BuiltInNumberPlus),
+        "__minus__": NewCallable("__minus__", BuiltInNumberMinus),
+        "__asterisk__": NewCallable("__asterisk__", BuiltInNumberAsterisk),
+        "__slash__": NewCallable("__slash__", BuiltInNumberSlash),
+        "__modulo__": NewCallable("__modulo__", BuiltInNumberModulo),
+        "__power__": NewCallable("__power__", BuiltInNumberPower),
+    }), nil
 }

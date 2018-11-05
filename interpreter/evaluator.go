@@ -27,6 +27,7 @@ type Object struct {
     Value interface{}
     Type ObjectType
     Slots map[string](*Object)
+    Parent *Object
 }
 
 type Scope struct {
@@ -102,7 +103,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 
 		if object != nil {
 			if ast.Left != nil && ast.Right != nil {
-				if callable, ok := object.Meta.Slots["__binary__"]; ok {
+				if callable, ok := object.Slots["__binary__"]; ok {
 					if form, ok :=callable.Slots["__form__"]; ok && form == TrueObject {
 						return callable.Value.(ObjectFormCallable)(
 							[](*AST){ ast.Left, ast.Right },

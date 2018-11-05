@@ -32,12 +32,7 @@ func TupleObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
 }
 
 func NewTupleObject(value [](*Object)) (*Object, error) {
-    return &Object{
-        Meta: TupleMetaObject,
-        Value: value,
-        Type: TYPE_TUPLE,
-        Slots: map[string](*Object) {
-            "__string__": CreateCallable("__string__", TupleObjectString),
-        },
-    }, nil
+    return NewObject(TYPE_TUPLE, value, TupleMetaObject, map[string](*Object) {
+        "__string__": NewCallable("__string__", TupleObjectString),
+    }), nil
 }

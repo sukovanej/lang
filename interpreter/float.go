@@ -58,17 +58,12 @@ func FloatObjectString(input [](*Object), scope *Scope) (*Object, error) {
 }
 
 func NewFloatObject(value float64) (*Object, error) {
-    return &Object{
-        Meta: FloatMetaObject,
-        Value: value,
-        Type: TYPE_FLOAT,
-        Slots: map[string](*Object) {
-            "__string__": CreateCallable("__string__", FloatObjectString),
-            "__plus__": CreateCallable("__plus__", BuiltInFloatPlus),
-            "__minus__": CreateCallable("__minus__", BuiltInFloatMinus),
-            "__asterisk__": CreateCallable("__asterisk__", BuiltInFloatAsterisk),
-            "__slash__": CreateCallable("__slash__", BuiltInFloatSlash),
-            "__power__": CreateCallable("__power__", BuiltInFloatPower),
-        },
-    }, nil
+    return NewObject(TYPE_FLOAT, value, FloatMetaObject, map[string](*Object) {
+        "__string__": NewCallable("__string__", FloatObjectString),
+        "__plus__": NewCallable("__plus__", BuiltInFloatPlus),
+        "__minus__": NewCallable("__minus__", BuiltInFloatMinus),
+        "__asterisk__": NewCallable("__asterisk__", BuiltInFloatAsterisk),
+        "__slash__": NewCallable("__slash__", BuiltInFloatSlash),
+        "__power__": NewCallable("__power__", BuiltInFloatPower),
+    }), nil
 }
