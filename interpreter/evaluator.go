@@ -112,7 +112,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
         if err != nil { return nil, err }
 
-        return NewListObject(objectList)
+        return NewTupleObject(objectList)
 	} else if ast.Value.Type == SIGN {
 		object, err := scope.SearchSymbol(ast.Value.Value)
         if err != nil { return nil, err }
@@ -154,18 +154,17 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         if err != nil { return nil, err }
 
         argumentsObject, err := evaluateAST(ast.Right, scope)
+        fmt.Println(argumentsObject.Type)
         if err != nil { return nil, err }
 
         if argumentsObject.Type != TYPE_TUPLE {
-            argumentsTuple, err := argumentsObject.GetTuple()
-            if err != nil { return nil, err }
-
-            argumentsObject, err = NewTupleObject(argumentsTuple)
+            argumentsObject, err = NewTupleObject([](*Object) {argumentsObject})
             if err != nil { return nil, err }
         }
 
         if callable, ok := callableObject.Slots["__call__"]; ok {
             arguments, err := argumentsObject.GetTuple()
+
             if err != nil { return nil, err }
 
             return callable.Value.(ObjectCallable)(arguments, scope)
