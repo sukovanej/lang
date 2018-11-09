@@ -34,6 +34,7 @@ const (
 
     NEWLINE
 
+    SPECIAL_STRING
     SPECIAL_LIST
     SPECIAL_BLOCK
     SPECIAL_FUNCTION_CALL
@@ -68,6 +69,7 @@ func (t *TokenType) String() string {
         case SQUARE_BRACKET_LEFT: return "SQUARE_BRACKET_LEFT"
         case SQUARE_BRACKET_RIGHT: return "SQUARE_BRACKET_RIGHT"
         case NEWLINE: return "NEWLINE"
+        case SPECIAL_STRING: return "SPECIAL_STRING"
         case SPECIAL_LIST: return "SPECIAL_LIST"
         case SPECIAL_BLOCK: return "SPECIAL_BLOCK"
         case SPECIAL_FUNCTION_CALL: return "SPECIAL_FUNCTION_CALL"
@@ -121,6 +123,30 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
         previousValue, _, err = buffer.ReadRune()
         if err != nil { return nil, err }
         previousType = GetTokenType(previousValue)
+    }
+
+    if previousValue == '"' {
+        previousValue, _, _ := buffer.ReadRune()
+
+        for previousValue != '"' {
+            if previousValue == '\\' {
+                previousValue, _, _ = buffer.ReadRune()
+
+                if previousValue == '"' {
+                    valueBuffer.WriteRune(previousValue)
+                } else if previousValue == 'n' {
+                    valueBuffer.WriteRune('\n')
+                } else if previousValue == 't' {
+                    valueBuffer.WriteRune('\t')
+                }
+            } else {
+                valueBuffer.WriteRune(previousValue)
+            }
+
+            previousValue, _, _ = buffer.ReadRune()
+        }
+
+        return &Token{valueBuffer.String(), SPECIAL_STRING}, nil
     }
 
     valueBuffer.WriteRune(previousValue)

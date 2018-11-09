@@ -588,3 +588,20 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }
+
+
+func TestGetNextTokenSimpleString(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`"a" + "ahoj\"alsfkj"`))
+
+    token, _ := i.GetNextToken(inputBuffer)
+    expected := &i.Token{"a", i.SPECIAL_STRING}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"+", i.SIGN}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"ahoj\"alsfkj", i.SPECIAL_STRING}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+}
