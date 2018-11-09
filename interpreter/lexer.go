@@ -164,7 +164,12 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
                 }
                 break Loop
             }
-        case BRACKET_BRACKET_LEFT, BRACKET_BRACKET_RIGHT, CURLY_BRACKET_LEFT, CURLY_BRACKET_RIGHT, SQUARE_BRACKET_LEFT, SQUARE_BRACKET_RIGHT:
+        case BRACKET_BRACKET_RIGHT, CURLY_BRACKET_RIGHT, SQUARE_BRACKET_RIGHT:
+            if newType != GAP {
+                buffer.UnreadRune()
+            }
+            break Loop
+        case BRACKET_BRACKET_LEFT, CURLY_BRACKET_LEFT, SQUARE_BRACKET_LEFT:
             if newType != GAP && newType != NEWLINE {
                 buffer.UnreadRune()
             }

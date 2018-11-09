@@ -708,3 +708,57 @@ func TestGetNextASTSimpleDotOperator(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTSimpleFunctionWithouBlock(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("f(x, y) -> x + y"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{
+			Left: &i.AST{Value: &i.Token{"f", i.IDENTIFIER}},
+			Right: &i.AST{
+                Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+                Right: &i.AST{Value: &i.Token{"y", i.IDENTIFIER}},
+				Value: &i.Token{",", i.SPECIAL_TUPLE},
+			},
+			Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+		},
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"y", i.IDENTIFIER}},
+            Value: &i.Token{"+", i.SIGN},
+		},
+		Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTMultiline(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("print(1)\nprint(1)\nprint(1)"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+        },
+        Right: &i.AST{
+            Right: &i.AST{
+                Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
+                Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+            },
+            Left: &i.AST{
+                Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
+                Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+            },
+            Value: &i.Token{"\n", i.NEWLINE},
+        },
+        Value: &i.Token{"\n", i.NEWLINE},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

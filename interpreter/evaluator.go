@@ -3,8 +3,8 @@ package interpreter
 import (
     "bufio"
     "errors"
-    //"fmt"
     "strconv"
+    _ "fmt"
 )
 
 type ObjectType int
@@ -38,13 +38,13 @@ type Scope struct {
 type ObjectCallable func([](*Object), *Scope)(*Object, error)
 type ObjectFormCallable func([](*AST), *Scope)(*Object, error)
 
-func (scope *Scope) SearchSymbol(name string) *Object {
+func (scope *Scope) SearchSymbol(name string) (*Object, error) {
     if val, ok := scope.Symbols[name]; ok {
-        return val
+        return val, nil
     }
 
     if scope.Parent == nil {
-        return nil
+        return nil, errors.New("Symbol " + name + " not found.")
     } else {
         return scope.Parent.SearchSymbol(name)
     }
@@ -70,16 +70,15 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		return object, nil
     } else if ast.Value.Type == FLOAT_NUMBER {
 		number, err := strconv.ParseFloat(ast.Value.Value, 64)
-        if err != nil {
-            return nil, err
-        }
+        if err != nil { return nil, err }
 
         object, err := NewFloatObject(number)
 		if err != nil { panic(err) }
 
 		return object, nil
     } else if ast.Value.Type == IDENTIFIER {
-		object := scope.SearchSymbol(ast.Value.Value)
+		object, err := scope.SearchSymbol(ast.Value.Value)
+        if err != nil { return nil, err }
 
 		if object != nil {
 			if ast.Left == nil && ast.Right == nil {
@@ -99,7 +98,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 
         return NewTupleObject(objectList)
 	} else if ast.Value.Type == SIGN {
-		object := scope.SearchSymbol(ast.Value.Value)
+		object, err := scope.SearchSymbol(ast.Value.Value)
+        if err != nil { return nil, err }
 
 		if object != nil {
 			if ast.Left != nil && ast.Right != nil {
@@ -153,9 +153,11 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         }
 
         return nil, errors.New("Runtime error: " + ast.Left.Value.Value + " is not callable")
+	} else if ast.Value.Type == SPECIAL_LAMBDA {
+        return CreateFunction(ast.Left, ast.Right, scope)
     }
 
-	panic("Runtime error")
+	panic("Runtime error" + ast.String())
 }
 
 func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Object), error) {
@@ -173,4 +175,49 @@ func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Objec
         objectList = append(objectList, object)
         return objectList, nil
     }
+}
+
+func getFormalArguments(ast *AST, argsList []string) ([]string, error) {
+    if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == "," {
+        argsList, err := getFormalArguments(ast.Left, argsList)
+        if err != nil { return nil, err }
+
+        argsList, err = getFormalArguments(ast.Right, argsList)
+        if err != nil { return nil, err }
+
+        return argsList, nil
+    } else {
+        argsList = append(argsList, ast.Value.Value)
+        return argsList, nil
+    }
+}
+
+func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, error) {
+    var name string
+    var formalArguments *AST
+
+    if left.Value.Type == SPECIAL_FUNCTION_CALL {
+        name = left.Left.Value.Value
+        formalArguments = left.Left.Right
+    } else {
+        name = "lambda"
+        formalArguments = left.Left
+    }
+
+    function := NewCallable(name, func (arguments [](*Object), scope *Scope) (*Object, error) {
+        localScope := &Scope{Parent: scope}
+        argumentNames, err := getFormalArguments(formalArguments, []string{})
+        if err != nil { return nil, err }
+
+        for i, arg := range argumentNames {
+            localScope.Symbols[arg] = arguments[i]
+        }
+        return evaluateAST(body, localScope)
+    })
+
+    if left.Value.Type == SPECIAL_FUNCTION_CALL {
+        scope.Symbols[name] = function
+    }
+
+    return function, nil
 }

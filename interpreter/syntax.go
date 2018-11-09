@@ -26,6 +26,7 @@ func (a *AST) String() string {
 }
 
 var BuiltInWeights map[string]uint = map[string]uint{
+    // "": 120,
     "^": 110,
     "/": 100,
     "*": 100,
