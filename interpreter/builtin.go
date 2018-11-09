@@ -12,7 +12,7 @@ func staticStringRepr(value string) (*Object) {
     })
 }
 
-var MetaObject = &Object{Type: TYPE_OBJECT}
+var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) { "__string__": staticStringRepr("<type object>") }}
 
 func (object *Object) GetMetaObject() (*Object, error) {
     if object.Meta == nil {
@@ -79,9 +79,9 @@ func NewBinaryFormObject(name string, callable ObjectFormCallable) (*Object) {
 }
 
 func NewCallable(name string, callable ObjectCallable) (*Object) {
-	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object){
+	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object) {
         "__call__": NewObject(TYPE_OBJECT, callable, nil, nil),
-        "__string__": NewObject(TYPE_OBJECT, func(input [](*Object), scope *Scope)(*Object, error) { 
+        "__string__": NewObject(TYPE_OBJECT, func(input [](*Object), scope *Scope)(*Object, error) {
             return NewStringObject(name)
         }, nil, nil),
     })
