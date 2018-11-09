@@ -21,6 +21,34 @@ func (object *Object) GetMetaObject() (*Object, error) {
     return object.Meta, nil
 }
 
+func (obj *Object) GetStringRepresentation(scope *Scope) (string, error) {
+    var err error
+    var value string
+
+    if obj.Type == TYPE_STRING {
+        value, err = obj.GetString()
+        if err != nil { return "", err }
+    } else {
+        stringObject, ok := obj.Slots["__string__"]
+        if !ok { return "", errors.New("Error: __string__ slot not found.") }
+
+        if stringObject.Type == TYPE_CALLABLE {
+            stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
+            if err != nil { return "", err }
+
+            value, err = stringObject.GetString()
+            if err != nil { return "", err }
+        } else if stringObject.Type == TYPE_STRING {
+            value, err = stringObject.GetString()
+            if err != nil { return "", err }
+        } else {
+            return "", errors.New("Error: __string__ must be of type string or callable.")
+        }
+    }
+
+    return value, nil
+}
+
 func NewObject(objectType ObjectType, value interface{}, meta *Object, slots map[string](*Object)) *Object {
     return &Object{
         Meta: meta,
@@ -105,31 +133,9 @@ func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
 
 func BuiltInPrint(input [](*Object), scope *Scope) (*Object, error) {
     for _, obj := range input {
-        var err error
-        var value string
-
-        if obj.Type == TYPE_STRING {
-            value, err = obj.GetString()
-            if err != nil { return nil, err }
-        } else {
-            stringObject, ok := obj.Slots["__string__"]
-            if !ok { return nil, errors.New("Error: __string__ slot not found.") }
-
-            if stringObject.Type == TYPE_CALLABLE {
-                stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
-                if err != nil { return nil, err }
-
-                value, err = stringObject.GetString()
-                if err != nil { return nil, err }
-            } else if stringObject.Type == TYPE_STRING {
-                value, err = stringObject.GetString()
-                if err != nil { return nil, err }
-            } else {
-                return nil, errors.New("Error: __string__ must be of type string or callable.")
-            }
-        }
-
-        fmt.Println(value)
+        str, err := obj.GetStringRepresentation(scope)
+        if err != nil { return nil, err }
+        fmt.Println(str)
     }
 
 	return MetaObject, nil

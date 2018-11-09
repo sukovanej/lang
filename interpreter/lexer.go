@@ -70,7 +70,7 @@ func (t *TokenType) String() string {
         case SQUARE_BRACKET_LEFT: return "SQUARE_BRACKET_LEFT"
         case SQUARE_BRACKET_RIGHT: return "SQUARE_BRACKET_RIGHT"
         case NEWLINE: return "NEWLINE"
-        case SPECIAL_LIST: return "SPECiAL_LIST"
+        case SPECIAL_LIST: return "SPECIAL_LIST"
         case SPECIAL_BLOCK: return "SPECIAL_BLOCK"
         case SPECIAL_FUNCTION_CALL: return "SPECIAL_FUNCTION_CALL"
         case SPECIAL_TUPLE: return "SPECIAL_TUPLE"

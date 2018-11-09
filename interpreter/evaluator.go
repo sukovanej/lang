@@ -91,7 +91,19 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		} else {
             return nil, errors.New("Runtime error")
 		}
-    } else if ast.Value.Type == SPECIAL_TUPLE && ast.Value.Value == "," {
+    } else if ast.Value.Type == SPECIAL_LIST {
+        var objectList [](*Object)
+
+        objectList, err := evaluateASTTuple(ast.Left, scope, objectList)
+        if err != nil { return nil, err }
+
+        if ast.Right != nil {
+            objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
+            if err != nil { return nil, err }
+        }
+
+        return NewListObject(objectList)
+    } else if ast.Value.Type == SPECIAL_TUPLE {
         var objectList [](*Object)
 
         objectList, err := evaluateASTTuple(ast.Left, scope, objectList)
@@ -100,7 +112,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
         if err != nil { return nil, err }
 
-        return NewTupleObject(objectList)
+        return NewListObject(objectList)
 	} else if ast.Value.Type == SIGN {
 		object, err := scope.SearchSymbol(ast.Value.Value)
         if err != nil { return nil, err }
@@ -126,7 +138,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
                 return object, nil
             }
 		} else {
-			panic("Runtime error: symbol '" + ast.Value.Value + "' not found")
+			return nil, errors.New("Runtime error: symbol '" + ast.Value.Value + "' not found")
 		}
 	} else if ast.Value.Type == NEWLINE {
 		left, err := evaluateAST(ast.Left, scope)
@@ -145,7 +157,10 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         if err != nil { return nil, err }
 
         if argumentsObject.Type != TYPE_TUPLE {
-            argumentsObject, err = NewTupleObject([](*Object){argumentsObject})
+            argumentsTuple, err := argumentsObject.GetTuple()
+            if err != nil { return nil, err }
+
+            argumentsObject, err = NewTupleObject(argumentsTuple)
             if err != nil { return nil, err }
         }
 
@@ -161,7 +176,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         return CreateFunction(ast.Left, ast.Right, scope)
     }
 
-	panic("Runtime error" + ast.String())
+    return nil, errors.New("Runtime error, undefined syntax : " + ast.String())
 }
 
 func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Object), error) {
@@ -182,7 +197,7 @@ func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Objec
 }
 
 func getFormalArguments(ast *AST, argsList []string) ([]string, error) {
-    if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == "," {
+    if ast != nil && (ast.Value.Type == SIGN || ast.Value.Type == SPECIAL_TUPLE) && ast.Value.Value == "," {
         argsList, err := getFormalArguments(ast.Left, argsList)
         if err != nil { return nil, err }
 
@@ -202,20 +217,22 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, error) {
 
     if left.Value.Type == SPECIAL_FUNCTION_CALL {
         name = left.Left.Value.Value
-        formalArguments = left.Left.Right
+        formalArguments = left.Right
     } else {
         name = "lambda"
         formalArguments = left.Left
     }
 
     function := NewCallable(name, func (arguments [](*Object), scope *Scope) (*Object, error) {
-        localScope := &Scope{Parent: scope}
+        localScope := &Scope{Parent: scope, Symbols: make(map[string](*Object))}
         argumentNames, err := getFormalArguments(formalArguments, []string{})
+
         if err != nil { return nil, err }
 
         for i, arg := range argumentNames {
             localScope.Symbols[arg] = arguments[i]
         }
+
         return evaluateAST(body, localScope)
     })
 

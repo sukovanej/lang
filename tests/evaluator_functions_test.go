@@ -17,10 +17,13 @@ func TestEvaluateMetaFunctionCall(t *testing.T) {
     if !compareObjects(obj, FloatMetaObject) { t.Errorf("%v != %v.", obj, FloatMetaObject) }
 }
 
-func TestEvaluateSimpleFunctionDefinition(t *testing.T) {
-    Evaluate(bufio.NewReader(strings.NewReader("f(x, y) -> x + y")), BuiltInScope)
+func TestEvaluateSimpleFunctionDefinitionAndCall(t *testing.T) {
+    obj, _ := Evaluate(bufio.NewReader(strings.NewReader("f(x, y) -> x + y\nf(1,1)")), BuiltInScope)
+
+    expected := &Object{Value: int64(2), Type: TYPE_NUMBER}
+    if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, FloatMetaObject) }
 }
 
-func TestEvaluatePrintFunction(t *testing.T) {
-    Evaluate(bufio.NewReader(strings.NewReader("printprint(12)")), BuiltInScope)
+func TestEvaluate(t *testing.T) {
+    Evaluate(bufio.NewReader(strings.NewReader("print(12)")), BuiltInScope)
 }

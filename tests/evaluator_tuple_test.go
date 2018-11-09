@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	//"fmt"
+	_ "fmt"
     "strings"
     "testing"
 
@@ -20,6 +20,17 @@ func compareObjects(o1, o2 *i.Object) bool {
 		n2, _ := o2.GetString()
 
 		return n1 == n2 && o1.Type == o2.Type
+	} else if o1.Type == i.TYPE_LIST {
+		n1, _ := o1.GetList()
+		n2, _ := o2.GetList()
+
+        for i, obj := range n1 {
+            if !compareObjects(obj, n2[i]) {
+                return false
+            }
+        }
+
+		return o1.Type == o2.Type
 	} else if o1.Type == i.TYPE_OBJECT {
 		n1, _ := o1.GetFloat()
 		n2, _ := o2.GetFloat()
