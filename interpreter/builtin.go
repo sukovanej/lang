@@ -125,8 +125,13 @@ func BuiltInDotForm(input [](*AST), scope *Scope) (*Object, error) {
 
 func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
     value, err := evaluateAST(input[1], scope)
-    scope.Symbols[input[0].Value.Value] = value
     if err != nil { return nil, err }
+
+    if input[0].Left == nil && input[0].Right == nil {
+        scope.Symbols[input[0].Value.Value] = value
+    } else {
+        return nil, errors.New("Not implemented")
+    }
 
 	return value, nil
 }
