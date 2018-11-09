@@ -26,7 +26,6 @@ func (a *AST) String() string {
 }
 
 var BuiltInWeights map[string]uint = map[string]uint{
-    // "": 120,
     "^": 110,
     "/": 100,
     "*": 100,
@@ -97,10 +96,6 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
 
 		argumentsAST, _, _ := getNextAST(buffer, nil, pairToken)
 		leftAST.Right = argumentsAST
-	} else if left.Value == "return" {
-		returnAST, _, _ := getNextAST(buffer, nil, pairToken)
-        leftAST = &AST{Value: &Token{"return", SPECIAL_RETURN}, Parent: last}
-		leftAST.Left = returnAST
 	}
 
     middle, _ := GetNextToken(buffer)

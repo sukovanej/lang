@@ -2,7 +2,6 @@ package tests
 
 import (
     "bufio"
-	_ "fmt"
     "strings"
     "testing"
 
@@ -24,6 +23,16 @@ func TestEvaluateSimpleFunctionDefinitionAndCall(t *testing.T) {
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, FloatMetaObject) }
 }
 
-func TestEvaluate(t *testing.T) {
-    Evaluate(bufio.NewReader(strings.NewReader("print(12)")), BuiltInScope)
+func TestEvaluateBlockFunctionDefinitionWithCall(t *testing.T) {
+    obj, _ := Evaluate(bufio.NewReader(strings.NewReader(`
+        f(x, y) -> {
+            z = x * y
+            w = x / y
+            z - w
+        }
+        f(10, 5)
+    `)), BuiltInScope)
+
+    expected := &Object{Value: int64(48), Type: TYPE_NUMBER}
+    if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }

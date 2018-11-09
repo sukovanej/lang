@@ -3,7 +3,6 @@ package interpreter
 import (
     "bufio"
     "bytes"
-    //"fmt"
     "unicode"
 )
 type TokenType int
@@ -41,7 +40,6 @@ const (
     SPECIAL_TUPLE
     SPECIAL_LAMBDA
     SPECIAL_TYPE
-    SPECIAL_RETURN
     SPECIAL_NONE
 )
 
@@ -76,7 +74,6 @@ func (t *TokenType) String() string {
         case SPECIAL_TUPLE: return "SPECIAL_TUPLE"
         case SPECIAL_LAMBDA: return "SPECIAL_LAMBDA"
         case SPECIAL_TYPE: return "SPECIAL_TYPE"
-        case SPECIAL_RETURN: return "SPECIAL_RETURN"
         case SPECIAL_NONE: return "SPECIAL_NONE"
     }
 
@@ -127,15 +124,10 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
     }
 
     valueBuffer.WriteRune(previousValue)
-    //fmt.Printf("init: %q, %v\n", previousValue, previousType.String())
 
     Loop: for {
         newValue, _, err := buffer.ReadRune()
         newType := GetTokenType(newValue)
-
-        //fmt.Printf("%q, %v\n", previousValue, previousType.String())
-        //fmt.Printf("%q, %v\n", newValue, newType.String())
-        //fmt.Println("----")
 
         switch previousType {
         case IDENTIFIER, UNDERSCORE:

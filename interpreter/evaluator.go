@@ -22,6 +22,23 @@ const (
 	TYPE_CALLABLE
 )
 
+func (o ObjectType) String() string {
+    var str string
+
+    switch o {
+    case TYPE_NUMBER: str = "TYPE_NUMBER"
+    case TYPE_FLOAT: str = "TYPE_FLOAT"
+    case TYPE_BOOL: str = "TYPE_BOOL"
+    case TYPE_STRING: str = "TYPE_STRING"
+    case TYPE_LIST: str = "TYPE_LIST"
+    case TYPE_MAP: str = "TYPE_MAP"
+    case TYPE_TUPLE: str = "TYPE_TUPLE"
+    case TYPE_CALLABLE: str = "TYPE_CALLABLE"
+    }
+
+    return str
+}
+
 type Object struct {
     Meta *Object
     Value interface{}
@@ -31,7 +48,7 @@ type Object struct {
 }
 
 func (obj *Object) String() string {
-    return fmt.Sprintf("<Object Value=%s, Slots=%s, Parent=%s>", obj.Value, obj.Slots, obj.Parent)
+    return fmt.Sprintf("<Object Value=%s>", obj.Value)
 }
 
 type Scope struct {
@@ -154,7 +171,6 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         if err != nil { return nil, err }
 
         argumentsObject, err := evaluateAST(ast.Right, scope)
-        fmt.Println(argumentsObject.Type)
         if err != nil { return nil, err }
 
         if argumentsObject.Type != TYPE_TUPLE {
@@ -171,6 +187,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         }
 
         return nil, errors.New("Runtime error: " + ast.Left.Value.Value + " is not callable")
+	} else if ast.Value.Type == SPECIAL_BLOCK {
+        return evaluateAST(ast.Left, scope)
 	} else if ast.Value.Type == SPECIAL_LAMBDA {
         return CreateFunction(ast.Left, ast.Right, scope)
     }

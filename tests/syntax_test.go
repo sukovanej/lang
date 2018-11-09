@@ -2,6 +2,7 @@ package tests
 
 import (
     "bufio"
+    _ "fmt"
     "strings"
     "testing"
 
@@ -484,7 +485,7 @@ func TestGetNextASTTypeOperator(t *testing.T) {
     meta = operator
 
     __binary__(self, left, right) -> {
-        return __add__(left, right)
+        __add__(left, right)
     }
 }`))
 
@@ -514,16 +515,13 @@ func TestGetNextASTTypeOperator(t *testing.T) {
 					},
 					Right: &i.AST{
 						Left: &i.AST{
-							Left: &i.AST{
-								Left: &i.AST{Value: &i.Token{"__add__", i.IDENTIFIER}},
-								Right: &i.AST{
-									Left: &i.AST{Value: &i.Token{"left", i.IDENTIFIER}},
-									Right: &i.AST{Value: &i.Token{"right", i.IDENTIFIER}},
-									Value: &i.Token{",", i.SPECIAL_TUPLE},
-								},
-								Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
-							},
-							Value: &i.Token{"return", i.SPECIAL_RETURN},
+                            Left: &i.AST{Value: &i.Token{"__add__", i.IDENTIFIER}},
+                            Right: &i.AST{
+                                Left: &i.AST{Value: &i.Token{"left", i.IDENTIFIER}},
+                                Right: &i.AST{Value: &i.Token{"right", i.IDENTIFIER}},
+                                Value: &i.Token{",", i.SPECIAL_TUPLE},
+                            },
+                            Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
 						},
 						Value: &i.Token{"", i.SPECIAL_BLOCK},
 					},
