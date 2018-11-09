@@ -4,7 +4,7 @@ import (
     "bufio"
     "errors"
     "strconv"
-    _ "fmt"
+    "fmt"
 )
 
 type ObjectType int
@@ -28,6 +28,10 @@ type Object struct {
     Type ObjectType
     Slots map[string](*Object)
     Parent *Object
+}
+
+func (obj *Object) String() string {
+    return fmt.Sprintf("<Object Value=%s, Slots=%s, Parent=%s>", obj.Value, obj.Slots, obj.Parent)
 }
 
 type Scope struct {

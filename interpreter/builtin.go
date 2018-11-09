@@ -5,14 +5,14 @@ import (
     "errors"
 )
 
+func createStringObject(value string) (*Object) {
+    result, err := NewStringObject(value)
+    if err != nil { panic("") }
 
-func staticStringRepr(value string) (*Object) {
-    return NewCallable("__string__", func(input [](*Object), scope *Scope)(*Object, error) {
-        return NewStringObject(value)
-    })
+    return result
 }
 
-var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) { "__string__": staticStringRepr("<type object>") }}
+var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) { "__string__": createStringObject("<type object>") }}
 
 func (object *Object) GetMetaObject() (*Object, error) {
     if object.Meta == nil {
@@ -31,18 +31,18 @@ func NewObject(objectType ObjectType, value interface{}, meta *Object, slots map
     }
 }
 
-var NumberMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": staticStringRepr("<type number>") })
-var FloatMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": staticStringRepr("<type float>") })
+var NumberMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type number>") })
+var FloatMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type float>") })
 var StringMetaObject = NewObject(TYPE_OBJECT, nil, nil, nil)
-var ListMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": staticStringRepr("<type list>") })
-var MapMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": staticStringRepr("<type map>") })
-var TupleMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": staticStringRepr("<type tuple>") })
-var BoolMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": staticStringRepr("<type bool>") })
+var ListMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type list>") })
+var MapMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type map>") })
+var TupleMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type tuple>") })
+var BoolMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type bool>") })
 
-var NilObject = NewObject(TYPE_BOOL, nil, nil, map[string](*Object) { "__string__": staticStringRepr("nil") })
+var NilObject = NewObject(TYPE_BOOL, nil, nil, map[string](*Object) { "__string__": createStringObject("nil") })
 
-var TrueObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": staticStringRepr("true") })
-var FalseObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": staticStringRepr("false") })
+var TrueObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": createStringObject("true") })
+var FalseObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": createStringObject("false") })
 
 
 func BuiltInPlus(input [](*Object), scope *Scope) (*Object, error) {
@@ -67,23 +67,21 @@ func BuiltInPower(input [](*Object), scope *Scope) (*Object, error) {
 func NewBinaryOperatorObject(name string, callable ObjectCallable) (*Object) {
 	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object) {
         "__binary__": NewObject(TYPE_OBJECT, callable, nil, nil),
-        "__string__": staticStringRepr("<object " + name + ">"),
+        "__string__": createStringObject("<binary " + name + ">"),
     })
 }
 
 func NewBinaryFormObject(name string, callable ObjectFormCallable) (*Object) {
 	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object){
         "__binary__": NewObject(TYPE_OBJECT, callable, nil, map[string](*Object){ "__form__": TrueObject }),
-        "__string__": staticStringRepr("<object " + name + ">"),
+        "__string__": createStringObject("<object " + name + ">"),
     })
 }
 
 func NewCallable(name string, callable ObjectCallable) (*Object) {
 	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object) {
         "__call__": NewObject(TYPE_OBJECT, callable, nil, nil),
-        "__string__": NewObject(TYPE_OBJECT, func(input [](*Object), scope *Scope)(*Object, error) {
-            return NewStringObject(name)
-        }, nil, nil),
+        "__string__": createStringObject("<callable " + name + ">"),
     })
 }
 
@@ -91,7 +89,7 @@ func BuiltInDotForm(input [](*AST), scope *Scope) (*Object, error) {
     object, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
-    result, ok := object.Slots[input[0].Value.Value]
+    result, ok := object.Slots[input[1].Value.Value]
     if !ok { return nil, errors.New("Symbol new found") }
 
     return result, nil
@@ -107,13 +105,31 @@ func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
 
 func BuiltInPrint(input [](*Object), scope *Scope) (*Object, error) {
     for _, obj := range input {
-        stringObject, err := obj.Slots["__string__"].Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
-        if err != nil { return nil, err }
+        var err error
+        var value string
 
-        result, err := stringObject.GetString()
-        if err != nil { return nil, err }
+        if obj.Type == TYPE_STRING {
+            value, err = obj.GetString()
+            if err != nil { return nil, err }
+        } else {
+            stringObject, ok := obj.Slots["__string__"]
+            if !ok { return nil, errors.New("Error: __string__ slot not found.") }
 
-        fmt.Println(result)
+            if stringObject.Type == TYPE_CALLABLE {
+                stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
+                if err != nil { return nil, err }
+
+                value, err = stringObject.GetString()
+                if err != nil { return nil, err }
+            } else if stringObject.Type == TYPE_STRING {
+                value, err = stringObject.GetString()
+                if err != nil { return nil, err }
+            } else {
+                return nil, errors.New("Error: __string__ must be of type string or callable.")
+            }
+        }
+
+        fmt.Println(value)
     }
 
 	return MetaObject, nil

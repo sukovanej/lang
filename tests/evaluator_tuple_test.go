@@ -15,6 +15,16 @@ func compareObjects(o1, o2 *i.Object) bool {
 		n2, _ := o2.GetNumber()
 
 		return n1 == n2 && o1.Type == o2.Type
+	} else if o1.Type == i.TYPE_STRING {
+		n1, _ := o1.GetString()
+		n2, _ := o2.GetString()
+
+		return n1 == n2 && o1.Type == o2.Type
+	} else if o1.Type == i.TYPE_OBJECT {
+		n1, _ := o1.GetFloat()
+		n2, _ := o2.GetFloat()
+
+		return n1 == n2 && o1.Type == o2.Type
 	} else if o1.Type == i.TYPE_FLOAT {
 		n1, _ := o1.GetFloat()
 		n2, _ := o2.GetFloat()
@@ -32,7 +42,7 @@ func compareObjects(o1, o2 *i.Object) bool {
 
 		return o1.Type == o2.Type
 	} else {
-		return o1 == o2
+        panic("Not set!")
 	}
 }
 

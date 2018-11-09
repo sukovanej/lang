@@ -15,9 +15,12 @@ func repl() {
     for {
         fmt.Print("lang> ")
         text, _ := reader.ReadString('\n')
+
         obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(text)), i.BuiltInScope)
-        fmt.Println(obj.Slots["__string__"])
-        stringRepr, _ := obj.Slots["__string__"].Slots["__call__"].Value.(i.ObjectCallable)([](*i.Object){ obj }, i.BuiltInScope)
-        fmt.Println(stringRepr.Value)
+        _, err := i.BuiltInPrint([](*i.Object){ obj }, i.BuiltInScope)
+
+        if err != nil {
+            fmt.Printf("Error: %s\n", err)
+        }
     }
 }

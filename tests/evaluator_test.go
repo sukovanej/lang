@@ -76,3 +76,10 @@ y = x * 3
 		t.Errorf("%v != %v.", obj, expected)
 	}
 }
+
+func TestEvaluateDotOperator(t *testing.T) {
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("object.__string__")), i.BuiltInScope)
+
+	expected := &i.Object{Value: "<type object>", Type: i.TYPE_STRING}
+    if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
+}
