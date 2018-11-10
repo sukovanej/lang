@@ -48,7 +48,7 @@ func TestGetNextTokenWithoutGap(t *testing.T) {
 }
 
 func TestGetNextTokenParenthesis(t *testing.T) {
-    inputBuffer := bufio.NewReader(strings.NewReader("myvar=(12) + y/12.3 -my_fn([x,0,3])*2 and 2^-12"))
+    inputBuffer := bufio.NewReader(strings.NewReader("myvar=(12) + y/12.3 -my_fn([x,0,3])*2 and 2^(-12)"))
 
     token, _ := i.GetNextToken(inputBuffer)
     expected := &i.Token{"myvar", i.IDENTIFIER}
@@ -59,7 +59,7 @@ func TestGetNextTokenParenthesis(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -67,7 +67,7 @@ func TestGetNextTokenParenthesis(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -95,11 +95,11 @@ func TestGetNextTokenParenthesis(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"[", i.SQUARE_BRACKET_LEFT}
+    expected = &i.Token{"[", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -123,11 +123,11 @@ func TestGetNextTokenParenthesis(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"]", i.SQUARE_BRACKET_RIGHT}
+    expected = &i.Token{"]", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -151,11 +151,19 @@ func TestGetNextTokenParenthesis(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"(", i.BRACKET_LEFT}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"-", i.SIGN}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"12", i.NUMBER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -217,7 +225,7 @@ func TestGetNextTokenTepDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"{", i.CURLY_BRACKET_LEFT}
+    expected = &i.Token{"{", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -241,7 +249,7 @@ func TestGetNextTokenTepDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -265,15 +273,15 @@ func TestGetNextTokenTepDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"->", i.SPECIAL_LAMBDA}
+    expected = &i.Token{"->", i.SIGN}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"{", i.CURLY_BRACKET_LEFT}
+    expected = &i.Token{"{", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -285,7 +293,7 @@ func TestGetNextTokenTepDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -301,15 +309,15 @@ func TestGetNextTokenTepDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"}", i.CURLY_BRACKET_RIGHT}
+    expected = &i.Token{"}", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"}", i.CURLY_BRACKET_RIGHT}
+    expected = &i.Token{"}", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -324,7 +332,7 @@ func TestGetNextTokenMultipleBlockExprs(t *testing.T) {
 }`))
 
     token, _ := i.GetNextToken(inputBuffer)
-    expected := &i.Token{"{", i.CURLY_BRACKET_LEFT}
+    expected := &i.Token{"{", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -356,7 +364,7 @@ func TestGetNextTokenMultipleBlockExprs(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"}", i.CURLY_BRACKET_RIGHT}
+    expected = &i.Token{"}", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -372,7 +380,7 @@ func TestGetNextTokenSimpleFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -388,7 +396,7 @@ func TestGetNextTokenSimpleFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -404,7 +412,7 @@ func TestGetNextTokenSimpleFunctionDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -420,11 +428,11 @@ func TestGetNextTokenSimpleFunctionDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"->", i.SPECIAL_LAMBDA}
+    expected = &i.Token{"->", i.SIGN}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -537,7 +545,7 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -545,7 +553,7 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -557,7 +565,7 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -565,7 +573,7 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -577,7 +585,7 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_BRACKET_LEFT}
+    expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -585,7 +593,7 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_BRACKET_RIGHT}
+    expected = &i.Token{")", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }
 

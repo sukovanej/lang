@@ -26,12 +26,8 @@ const (
     KEYWORD_NULL
     KEYWORD_FN
 
-    BRACKET_BRACKET_LEFT
-    BRACKET_BRACKET_RIGHT
-    CURLY_BRACKET_LEFT
-    CURLY_BRACKET_RIGHT
-    SQUARE_BRACKET_LEFT
-    SQUARE_BRACKET_RIGHT
+    BRACKET_LEFT
+    BRACKET_RIGHT
 
     NEWLINE
 
@@ -39,7 +35,6 @@ const (
     SPECIAL_BLOCK
     SPECIAL_FUNCTION_CALL
     SPECIAL_TUPLE
-    SPECIAL_LAMBDA
     SPECIAL_TYPE
     SPECIAL_NONE
 )
@@ -62,19 +57,14 @@ func (t *TokenType) String() string {
         case KEYWORD_OR: return "KEYWORD_OR"
         case KEYWORD_NULL: return "KEYWORD_NULL"
         case KEYWORD_FN: return "KEYWORD_FN"
-        case BRACKET_BRACKET_LEFT: return "BRACKET_BRACKET_LEFT"
-        case BRACKET_BRACKET_RIGHT: return "BRACKET_BRACKET_RIGHT"
-        case CURLY_BRACKET_LEFT: return "CURLY_BRACKET_LEFT"
-        case CURLY_BRACKET_RIGHT: return "CURLY_BRACKET_RIGHT"
-        case SQUARE_BRACKET_LEFT: return "SQUARE_BRACKET_LEFT"
-        case SQUARE_BRACKET_RIGHT: return "SQUARE_BRACKET_RIGHT"
+        case BRACKET_LEFT: return "BRACKET_BRACKET_LEFT"
+        case BRACKET_RIGHT: return "BRACKET_BRACKET_RIGHT"
         case NEWLINE: return "NEWLINE"
         case STRING: return "STRING"
         case SPECIAL_LIST: return "SPECIAL_LIST"
         case SPECIAL_BLOCK: return "SPECIAL_BLOCK"
         case SPECIAL_FUNCTION_CALL: return "SPECIAL_FUNCTION_CALL"
         case SPECIAL_TUPLE: return "SPECIAL_TUPLE"
-        case SPECIAL_LAMBDA: return "SPECIAL_LAMBDA"
         case SPECIAL_TYPE: return "SPECIAL_TYPE"
         case SPECIAL_NONE: return "SPECIAL_NONE"
     }
@@ -97,13 +87,9 @@ func GetTokenType(c rune) TokenType {
     switch c {
     case ' ', '\t': return GAP
     case '_': return UNDERSCORE
-    case '>', ':', '.', '?', '^', '/', '*', '%', ',', '+', '-', '=': return SIGN
-    case '(': return BRACKET_BRACKET_LEFT
-    case ')': return BRACKET_BRACKET_RIGHT
-    case '{': return CURLY_BRACKET_LEFT
-    case '}': return CURLY_BRACKET_RIGHT
-    case '[': return SQUARE_BRACKET_LEFT
-    case ']': return SQUARE_BRACKET_RIGHT
+    case '<', '>', ':', '.', '?', '^', '/', '*', '%', ',', '+', '-', '=', '!', '@', '#', '$': return SIGN
+    case '(', '{', '[': return BRACKET_LEFT
+    case ')', '}', ']': return BRACKET_RIGHT
     case '\n': return NEWLINE
     }
 
@@ -182,28 +168,19 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
                 }
                 break Loop
             }
-        case BRACKET_BRACKET_RIGHT, CURLY_BRACKET_RIGHT, SQUARE_BRACKET_RIGHT:
+        case BRACKET_RIGHT:
             if newType != GAP {
                 buffer.UnreadRune()
             }
             break Loop
-        case BRACKET_BRACKET_LEFT, CURLY_BRACKET_LEFT, SQUARE_BRACKET_LEFT:
+        case BRACKET_LEFT:
             if newType != GAP && newType != NEWLINE {
                 buffer.UnreadRune()
             }
             break Loop
         case SIGN:
-            if newType == SIGN && previousValue == '-' && newValue == '>' {
+            if newType == SIGN {
                 valueBuffer.WriteRune(newValue)
-                previousType = SPECIAL_LAMBDA
-                break Loop
-            } else if newType == SIGN {
-                if previousValue == '^' && newValue == '-' {
-                    buffer.UnreadRune()
-                    break Loop
-                } else {
-                    valueBuffer.WriteRune(newValue)
-                }
             } else {
                 buffer.UnreadRune()
                 break Loop
@@ -224,7 +201,7 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
                 newType = GetTokenType(newValue)
             }
 
-            if (newType == BRACKET_BRACKET_RIGHT || newType == CURLY_BRACKET_RIGHT || newType == SQUARE_BRACKET_RIGHT) {
+            if newType == BRACKET_RIGHT {
                 previousType = newType
                 valueBuffer.Reset()
                 valueBuffer.WriteRune(newValue)

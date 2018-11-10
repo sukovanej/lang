@@ -64,23 +64,12 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
     }
 
     var leftAST *AST
-    if left.Type == BRACKET_BRACKET_LEFT || left.Type == SQUARE_BRACKET_LEFT || left.Type == CURLY_BRACKET_LEFT {
-        var newPairToken TokenType
+    if left.Type == BRACKET_LEFT {
+        leftAST, _, _ = getNextAST(buffer, nil, BRACKET_RIGHT)
 
-        switch left.Type {
-        case BRACKET_BRACKET_LEFT:
-            newPairToken = BRACKET_BRACKET_RIGHT
-        case SQUARE_BRACKET_LEFT:
-            newPairToken = SQUARE_BRACKET_RIGHT
-        case CURLY_BRACKET_LEFT:
-            newPairToken = CURLY_BRACKET_RIGHT
-        }
-
-        leftAST, _, _ = getNextAST(buffer, nil, newPairToken)
-
-        if left.Type == SQUARE_BRACKET_LEFT {
+        if left.Value == "[" {
             leftAST = &AST{Value: &Token{"", SPECIAL_LIST}, Left: leftAST}
-        } else if left.Type == CURLY_BRACKET_LEFT {
+        } else if left.Value == "{" {
             leftAST = &AST{Value: &Token{"", SPECIAL_BLOCK}, Left: leftAST}
         }
 
@@ -104,12 +93,12 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
 
     middle, _ := GetNextToken(buffer)
 
-    if middle.Type == BRACKET_BRACKET_LEFT {
-        argumentsAST, _, _ := getNextAST(buffer, nil, BRACKET_BRACKET_RIGHT)
+    if middle.Type == BRACKET_LEFT && middle.Value == "(" {
+        argumentsAST, _, _ := getNextAST(buffer, nil, BRACKET_RIGHT)
 		leftAST = &AST{Left: leftAST, Right: argumentsAST, Value: &Token{"", SPECIAL_FUNCTION_CALL}}
 
 		middle, _ = GetNextToken(buffer)
-	} else if middle.Type == SIGN && middle.Value == "," && pairToken == BRACKET_BRACKET_RIGHT { // is initial tuple token
+	} else if middle.Type == SIGN && middle.Value == "," && pairToken == BRACKET_RIGHT { // is initial tuple token
         newLast := last
         for newLast!= nil && newLast.Value.Type != SPECIAL_TUPLE && (newLast.Value.Type != SIGN || newLast.Value.Value != ",") {
             newLast = last.Parent

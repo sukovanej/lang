@@ -139,6 +139,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         if err != nil { return nil, err }
 
         return NewTupleObject(objectList)
+	} else if ast.Value.Type == SIGN && ast.Value.Value == "->" {
+        return CreateFunction(ast.Left, ast.Right, scope)
 	} else if ast.Value.Type == SIGN {
 		object, err := scope.SearchSymbol(ast.Value.Value)
         if err != nil { return nil, err }
@@ -218,8 +220,6 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         return nil, errors.New("Runtime error: " + ast.Left.Value.Value + " is not callable")
 	} else if ast.Value.Type == SPECIAL_BLOCK {
         return evaluateAST(ast.Left, scope)
-	} else if ast.Value.Type == SPECIAL_LAMBDA {
-        return CreateFunction(ast.Left, ast.Right, scope)
     }
 
     return nil, errors.New("Runtime error, undefined syntax : " + ast.String())

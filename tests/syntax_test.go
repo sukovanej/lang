@@ -443,7 +443,7 @@ func TestGetNextASTFunctionDefinition(t *testing.T) {
 			},
 			Value: &i.Token{"", i.SPECIAL_BLOCK},
 		},
-		Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+		Value: &i.Token{"->", i.SIGN},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -525,7 +525,7 @@ func TestGetNextASTTypeOperator(t *testing.T) {
 						},
 						Value: &i.Token{"", i.SPECIAL_BLOCK},
 					},
-					Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+					Value: &i.Token{"->", i.SIGN},
 				},
 				Value: &i.Token{"\n", i.NEWLINE},
 			},
@@ -726,7 +726,7 @@ func TestGetNextASTSimpleFunctionWithouBlock(t *testing.T) {
             Right: &i.AST{Value: &i.Token{"y", i.IDENTIFIER}},
             Value: &i.Token{"+", i.SIGN},
 		},
-		Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+		Value: &i.Token{"->", i.SIGN},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -800,7 +800,7 @@ func TestGetNextASTTypeDefinitionWithFunction(t *testing.T) {
                         },
                         Value: &i.Token{"", i.SPECIAL_BLOCK},
                     },
-					Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+					Value: &i.Token{"->", i.SIGN},
 				},
 				Value: &i.Token{"\n", i.NEWLINE},
 			},
@@ -868,7 +868,7 @@ func TestGetNextASTTypeDefinitionWithFunctionAndNextStatement(t *testing.T) {
                             },
                             Value: &i.Token{"", i.SPECIAL_BLOCK},
                         },
-                        Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+                        Value: &i.Token{"->", i.SIGN},
                     },
                     Value: &i.Token{"\n", i.NEWLINE},
                 },
