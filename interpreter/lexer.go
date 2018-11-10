@@ -15,6 +15,7 @@ const (
     IDENTIFIER
     NUMBER
     FLOAT_NUMBER
+    STRING
 
     UNDERSCORE
 
@@ -34,7 +35,6 @@ const (
 
     NEWLINE
 
-    SPECIAL_STRING
     SPECIAL_LIST
     SPECIAL_BLOCK
     SPECIAL_FUNCTION_CALL
@@ -69,7 +69,7 @@ func (t *TokenType) String() string {
         case SQUARE_BRACKET_LEFT: return "SQUARE_BRACKET_LEFT"
         case SQUARE_BRACKET_RIGHT: return "SQUARE_BRACKET_RIGHT"
         case NEWLINE: return "NEWLINE"
-        case SPECIAL_STRING: return "SPECIAL_STRING"
+        case STRING: return "STRING"
         case SPECIAL_LIST: return "SPECIAL_LIST"
         case SPECIAL_BLOCK: return "SPECIAL_BLOCK"
         case SPECIAL_FUNCTION_CALL: return "SPECIAL_FUNCTION_CALL"
@@ -146,7 +146,7 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
             previousValue, _, _ = buffer.ReadRune()
         }
 
-        return &Token{valueBuffer.String(), SPECIAL_STRING}, nil
+        return &Token{valueBuffer.String(), STRING}, nil
     }
 
     valueBuffer.WriteRune(previousValue)

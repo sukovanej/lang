@@ -25,7 +25,9 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (string, error) {
     var err error
     var value string
 
-    if obj.Type == TYPE_STRING {
+    if obj.Type == TYPE_CALLABLE {
+        value = fmt.Sprintf("<callable> @ %p", obj)
+    } else if obj.Type == TYPE_STRING {
         value, err = obj.GetString()
         if err != nil { return "", err }
     } else {
@@ -109,7 +111,6 @@ func NewBinaryFormObject(name string, callable ObjectFormCallable) (*Object) {
 func NewCallable(name string, callable ObjectCallable) (*Object) {
 	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object) {
         "__call__": NewObject(TYPE_OBJECT, callable, nil, nil),
-        "__string__": createStringObject("<callable " + name + ">"),
     })
 }
 

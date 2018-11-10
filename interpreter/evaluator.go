@@ -79,7 +79,12 @@ func Evaluate(buffer *bufio.Reader, scope *Scope) (*Object, error) {
 }
 
 func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
-    if ast.Value.Type == NUMBER {
+    if ast.Value.Type == STRING {
+        object, err := NewStringObject(ast.Value.Value)
+		if err != nil { panic(err) }
+
+		return object, nil
+    } else if ast.Value.Type == NUMBER {
         number, err := strconv.ParseInt(ast.Value.Value, 0, 64)
         if err != nil {
             return nil, err
