@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	//"fmt"
+	"fmt"
     "strings"
     "testing"
 
@@ -82,4 +82,57 @@ func TestEvaluateDotOperator(t *testing.T) {
 
 	expected := &i.Object{Value: "<type object>", Type: i.TYPE_STRING}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
+}
+
+func TestEvaluateTypeDefinition(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        type MyType {
+            my_var = 12
+
+            my_fn(a, b) -> {
+                a + b
+            }
+        }
+    `)), scope)
+
+    expectedMyVar := &i.Object{Value: int64(12), Type: i.TYPE_NUMBER}
+    if !compareObjects(scope.Symbols["MyType"].Slots["my_var"], expectedMyVar) {
+        t.Errorf("%v != %v.", obj, expectedMyVar)
+    }
+
+    if scope.Symbols["MyType"].Slots["my_fn"].Value == nil {
+        t.Errorf("%v is nil", scope.Symbols["MyType"].Slots["my_fn"].Value)
+    }
+}
+
+func TestEvaluateTypeDefinitionWithSlotCall(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        type MyType {
+            my_var = 12
+        }
+
+        MyType.my_var
+    `)), scope)
+
+    fmt.Println(obj)
+
+    expected := &i.Object{Value: int64(12), Type: i.TYPE_NUMBER}
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v != %v.", obj, expected)
+    }
+}
+
+func TestEvaluateScopeFunction(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        scope()
+    `)), scope)
+
+    list, err := obj.GetList()
+
+    if list == nil || err != nil {
+        t.Errorf("%v is not list", list)
+    }
 }

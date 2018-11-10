@@ -147,6 +147,16 @@ func BuiltInPrint(input [](*Object), scope *Scope) (*Object, error) {
 	return MetaObject, nil
 }
 
+func BuiltInFunctionScope(input [](*Object), scope *Scope) (*Object, error) {
+    scopeList := make([](*Object), 0, len(scope.Symbols))
+
+    for  _, value := range scope.Symbols {
+       scopeList = append(scopeList, value)
+    }
+
+	return NewListObject(scopeList)
+}
+
 func BuiltInMeta(input [](*Object), scope *Scope) (*Object, error) {
     meta, err := input[0].GetMetaObject()
     if err != nil { return nil, err }
@@ -177,5 +187,6 @@ var BuiltInScope = &Scope{
 
         "meta": NewCallable("meta", BuiltInMeta),
         "print": NewCallable("print", BuiltInPrint),
+        "scope": NewCallable("scope", BuiltInFunctionScope),
     },
 }

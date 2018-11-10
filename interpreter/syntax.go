@@ -59,6 +59,10 @@ func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, err
     left, err := GetNextToken(buffer)
     if err != nil { return nil, err, false }
 
+    if left.Type == pairToken {
+        return nil, nil, false
+    }
+
     var leftAST *AST
     if left.Type == BRACKET_BRACKET_LEFT || left.Type == SQUARE_BRACKET_LEFT || left.Type == CURLY_BRACKET_LEFT {
         var newPairToken TokenType

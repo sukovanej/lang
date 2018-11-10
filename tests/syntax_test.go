@@ -760,3 +760,130 @@ func TestGetNextASTMultiline(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTTypeDefinitionWithFunction(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        type MyType {
+            my_var = 12
+
+            my_fn(a, b) -> {
+                a + b
+            }
+        }
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"MyType", i.IDENTIFIER}},
+		Right: &i.AST{
+			Left: &i.AST{
+				Left: &i.AST{
+					Left: &i.AST{Value: &i.Token{"my_var", i.IDENTIFIER}},
+					Right: &i.AST{Value: &i.Token{"12", i.NUMBER}},
+					Value: &i.Token{"=", i.SIGN},
+				},
+				Right: &i.AST{
+                    Left: &i.AST{
+                        Left: &i.AST{Value: &i.Token{"my_fn", i.IDENTIFIER}},
+                        Right: &i.AST{
+                            Left: &i.AST{Value: &i.Token{"a", i.IDENTIFIER}},
+                            Right: &i.AST{Value: &i.Token{"b", i.IDENTIFIER}},
+                            Value: &i.Token{",", i.SPECIAL_TUPLE},
+                        },
+                        Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+                    },
+                    Right: &i.AST{
+                        Left: &i.AST{
+                            Left: &i.AST{Value: &i.Token{"a", i.IDENTIFIER}},
+                            Right: &i.AST{Value: &i.Token{"b", i.IDENTIFIER}},
+                            Value: &i.Token{"+", i.SIGN},
+                        },
+                        Value: &i.Token{"", i.SPECIAL_BLOCK},
+                    },
+					Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+				},
+				Value: &i.Token{"\n", i.NEWLINE},
+			},
+			Value: &i.Token{"", i.SPECIAL_BLOCK},
+		},
+        Value: &i.Token{"type", i.SPECIAL_TYPE},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTScopeFunctionCall(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        scope()
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"scope", i.IDENTIFIER}},
+        Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTTypeDefinitionWithFunctionAndNextStatement(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        type MyType {
+            my_var = 12
+
+            my_fn(a, b) -> {
+                a + b
+            }
+        }
+
+        MyType.my_var
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"MyType", i.IDENTIFIER}},
+            Right: &i.AST{
+                Left: &i.AST{
+                    Left: &i.AST{
+                        Left: &i.AST{Value: &i.Token{"my_var", i.IDENTIFIER}},
+                        Right: &i.AST{Value: &i.Token{"12", i.NUMBER}},
+                        Value: &i.Token{"=", i.SIGN},
+                    },
+                    Right: &i.AST{
+                        Left: &i.AST{
+                            Left: &i.AST{Value: &i.Token{"my_fn", i.IDENTIFIER}},
+                            Right: &i.AST{
+                                Left: &i.AST{Value: &i.Token{"a", i.IDENTIFIER}},
+                                Right: &i.AST{Value: &i.Token{"b", i.IDENTIFIER}},
+                                Value: &i.Token{",", i.SPECIAL_TUPLE},
+                            },
+                            Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+                        },
+                        Right: &i.AST{
+                            Left: &i.AST{
+                                Left: &i.AST{Value: &i.Token{"a", i.IDENTIFIER}},
+                                Right: &i.AST{Value: &i.Token{"b", i.IDENTIFIER}},
+                                Value: &i.Token{"+", i.SIGN},
+                            },
+                            Value: &i.Token{"", i.SPECIAL_BLOCK},
+                        },
+                        Value: &i.Token{"->", i.SPECIAL_LAMBDA},
+                    },
+                    Value: &i.Token{"\n", i.NEWLINE},
+                },
+                Value: &i.Token{"", i.SPECIAL_BLOCK},
+            },
+            Value: &i.Token{"type", i.SPECIAL_TYPE},
+        },
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"MyType", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"my_var", i.IDENTIFIER}},
+            Value: &i.Token{".", i.SIGN},
+        },
+        Value: &i.Token{"\n", i.NEWLINE},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+

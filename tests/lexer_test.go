@@ -594,7 +594,7 @@ func TestGetNextTokenSimpleString(t *testing.T) {
     inputBuffer := bufio.NewReader(strings.NewReader(`"a" + "ahoj\"alsfkj"`))
 
     token, _ := i.GetNextToken(inputBuffer)
-    expected := &i.Token{"a", i.SPECIAL_STRING}
+    expected := &i.Token{"a", i.STRING}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -602,6 +602,6 @@ func TestGetNextTokenSimpleString(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"ahoj\"alsfkj", i.SPECIAL_STRING}
+    expected = &i.Token{"ahoj\"alsfkj", i.STRING}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }

@@ -14,16 +14,19 @@ func (o *Object) GetList() ([](*Object), error) {
 }
 
 func ListObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
-    tuple, err := arguments[0].GetTuple()
+    list, err := arguments[0].GetList()
     if err != nil { return nil, err }
 
     result := "["
-    for _, item := range tuple {
+    for _, item := range list {
         str, err := item.GetStringRepresentation(scope)
         if err != nil { return nil, err }
         result += str + ", "
     }
-    result = result[:len(result) - 2]
+
+    if len(list) > 0 {
+        result = result[:len(result) - 2]
+    }
     result += "]"
 
     return NewStringObject(result)

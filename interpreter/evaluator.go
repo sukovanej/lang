@@ -56,6 +56,10 @@ type Scope struct {
     Symbols map[string](*Object)
 }
 
+func NewScope(parent *Scope) *Scope {
+    return &Scope{Parent: parent, Symbols: make(map[string](*Object))}
+}
+
 type ObjectCallable func([](*Object), *Scope)(*Object, error)
 type ObjectFormCallable func([](*AST), *Scope)(*Object, error)
 
@@ -171,14 +175,34 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		} else {
 			return evaluateAST(ast.Right, scope)
 		}
+	} else if ast.Value.Type == SPECIAL_TYPE {
+        localScope := NewScope(scope)
+
+        name := ast.Left.Value.Value
+        block, err := evaluateAST(ast.Right, localScope)
+        fmt.Println(ast.Right)
+        if err != nil { return nil, err }
+
+        fmt.Println(scope)
+        object := NewObject(TYPE_OBJECT, block, nil, localScope.Symbols)
+        scope.Symbols[name] = object
+
+        return object, nil
 	} else if ast.Value.Type == SPECIAL_FUNCTION_CALL {
         callableObject, err := evaluateAST(ast.Left, scope)
         if err != nil { return nil, err }
 
-        argumentsObject, err := evaluateAST(ast.Right, scope)
-        if err != nil { return nil, err }
+        var argumentsObject *Object
 
-        if argumentsObject.Type != TYPE_TUPLE {
+        if ast.Right != nil {
+            argumentsObject, err = evaluateAST(ast.Right, scope)
+            if err != nil { return nil, err }
+        }
+
+        if argumentsObject == nil {
+            argumentsObject, err = NewTupleObject([](*Object) {})
+            if err != nil { return nil, err }
+        } else if argumentsObject.Type != TYPE_TUPLE {
             argumentsObject, err = NewTupleObject([](*Object) {argumentsObject})
             if err != nil { return nil, err }
         }
@@ -246,7 +270,7 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, error) {
     }
 
     function := NewCallable(name, func (arguments [](*Object), scope *Scope) (*Object, error) {
-        localScope := &Scope{Parent: scope, Symbols: make(map[string](*Object))}
+        localScope := NewScope(scope)
         argumentNames, err := getFormalArguments(formalArguments, []string{})
 
         if err != nil { return nil, err }
