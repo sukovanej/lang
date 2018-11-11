@@ -39,6 +39,7 @@ const (
     SPECIAL_TYPE
     SPECIAL_NONE
     SPECIAL_NO_ARGUMENTS
+    SPECIAL_INDEX
 )
 
 func (t *Token) String() string {
@@ -70,6 +71,7 @@ func (t *TokenType) String() string {
         case SPECIAL_TYPE: return "SPECIAL_TYPE"
         case SPECIAL_NONE: return "SPECIAL_NONE"
         case SPECIAL_NO_ARGUMENTS: return "SPECIAL_NO_ARGUMENTS"
+        case SPECIAL_INDEX: return "SPECIAL_INDEX"
     }
 
     return "???"
@@ -100,11 +102,15 @@ func GetTokenType(c rune) TokenType {
 }
 
 var specialFunctionCallNext = false
+var specialGetItem = false
 
 func GetNextToken(buffer *bufio.Reader) (*Token, error) {
     if specialFunctionCallNext {
         specialFunctionCallNext = false
         return &Token{"", SPECIAL_FUNCTION_CALL}, nil
+    } else if specialGetItem {
+        specialGetItem = false
+        return &Token{"", SPECIAL_INDEX}, nil
     }
 
     var valueBuffer bytes.Buffer
@@ -155,6 +161,8 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
         case IDENTIFIER, UNDERSCORE:
             if newValue == '(' {
                 specialFunctionCallNext = true
+            } else if newValue == '[' {
+                specialGetItem = true
             }
 
             if newType == IDENTIFIER || newType == UNDERSCORE {

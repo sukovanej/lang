@@ -55,6 +55,10 @@ func BuiltInNumberPower(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewFloatObject(math.Pow(float64(left_value), float64(right_value)))
 }
 
+func NumberObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
+    return arguments[0], nil
+}
+
 func NewNumberObject(value int64) (*Object, error) {
     return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
         "__plus__": NewCallable("__plus__", BuiltInNumberPlus),
@@ -63,5 +67,6 @@ func NewNumberObject(value int64) (*Object, error) {
         "__slash__": NewCallable("__slash__", BuiltInNumberSlash),
         "__modulo__": NewCallable("__modulo__", BuiltInNumberModulo),
         "__power__": NewCallable("__power__", BuiltInNumberPower),
+        "__hash__": NewCallable("__hash__", NumberObjectHash),
     }), nil
 }

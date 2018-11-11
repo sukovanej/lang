@@ -209,18 +209,30 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 
         if callable, ok := callableObject.Slots["__call__"]; ok {
             arguments, err := argumentsObject.GetTuple()
-
             if err != nil { return nil, err }
 
             return callable.Value.(ObjectCallable)(arguments, scope)
         }
 
         return nil, errors.New("Runtime error: " + ast.Left.Value.Value + " is not callable")
+	} else if ast.Value.Type == SPECIAL_INDEX {
+        mapObject, err := evaluateAST(ast.Left, scope)
+        if err != nil { return nil, err }
+
+        indexObject, err := evaluateAST(ast.Right, scope)
+        if err != nil { return nil, err }
+
+        if callable, ok := mapObject.Slots["__index__"]; ok {
+            callableObject := callable.Slots["__call__"].Value.(ObjectCallable)
+            return callableObject([](*Object){ mapObject, indexObject }, scope)
+        } else {
+            return nil, errors.New("Runtime error: __index__ not found.")
+        }
 	} else if ast.Value.Type == SPECIAL_BLOCK {
         if ast.Left.Value.Type == SIGN && (ast.Left.Value.Value == ":" || ast.Left.Value.Value == ",") {
             objectMap := make(MapObject)
-
             objectMap, err := evaluateASTMap(ast.Left, scope, objectMap)
+
             if err != nil { return nil, err }
 
             if ast.Right != nil {
@@ -253,8 +265,10 @@ func evaluateASTMap(ast *AST, scope *Scope, objectMap MapObject) (MapObject, err
         objectValue, err := evaluateAST(ast.Right, scope)
         if err != nil { return nil, err }
 
-        objectMap[objectKey] = objectValue
+        hash, err := objectKey.GetHash(scope)
+        if err != nil { return nil, err }
 
+        objectMap[hash] = [2](*Object) { objectKey, objectValue }
         return objectMap, nil
     } else {
         //object, err := evaluateAST(ast, scope)

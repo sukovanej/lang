@@ -5,13 +5,24 @@ import (
     "fmt"
 )
 
-type MapObject map[*Object](*Object)
+type MapObject map[interface{}]([2](*Object))
+
+func (o *Object) GetHash(scope *Scope) (interface{}, error) {
+    if hashCallable, ok := o.Slots["__hash__"]; ok {
+        object, err := hashCallable.Slots["__call__"].Value.(ObjectCallable)([](*Object){ o }, scope)
+        if err != nil { return 0, err }
+
+        return object.Value, nil
+    } else {
+        return 0, errors.New("Runtime error: object is not hashable.")
+    }
+}
 
 func (o *Object) GetMap() (MapObject, error) {
     if mapObject, ok := o.Value.(MapObject); ok {
         return mapObject, nil
     } else {
-        return nil, errors.New(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value))
+        return nil, errors.New(fmt.Sprintf("Runtime error: cant convert %v (%T) to number", o.Value, o.Value))
     }
 }
 
@@ -20,11 +31,11 @@ func MapObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
     if err != nil { return nil, err }
 
     result := "{"
-    for key, value := range mapObject {
-        keyStr, err := key.GetStringRepresentation(scope)
+    for _, value := range mapObject {
+        keyStr, err := value[0].GetStringRepresentation(scope)
         if err != nil { return nil, err }
 
-        valueStr, err := value.GetStringRepresentation(scope)
+        valueStr, err := value[1].GetStringRepresentation(scope)
         if err != nil { return nil, err }
 
         result += keyStr + ":" + valueStr + ", "
@@ -39,6 +50,21 @@ func MapObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewStringObject(result)
 }
 
+func MapObjectIndex(arguments [](*Object), scope *Scope) (*Object, error) {
+    obj := arguments[0]
+    index := arguments[1]
+
+    mapObject, err := obj.GetMap()
+    if err != nil { return nil, err }
+
+    hash, err := index.GetHash(scope)
+    if err != nil { return nil, err }
+
+    value, ok := mapObject[hash]
+    if !ok { return nil, errors.New("Runtime error: index not found.") }
+    return value[1], nil
+}
+
 func MapObjectLen(arguments [](*Object), scope *Scope) (*Object, error) {
     obj := arguments[0]
     mapObject, err := obj.GetMap()
@@ -48,8 +74,9 @@ func MapObjectLen(arguments [](*Object), scope *Scope) (*Object, error) {
 }
 
 func NewMapObject(value MapObject) (*Object, error) {
-    return NewObject(TYPE_MAP, value, ListMetaObject, map[string](*Object) {
+    return NewObject(TYPE_MAP, value, MapMetaObject, map[string](*Object) {
         "__string__": NewCallable("__string__", MapObjectString),
+        "__index__": NewCallable("__index__", MapObjectIndex),
         "len": NewCallable("__string__", MapObjectLen),
     }), nil
 }

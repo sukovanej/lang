@@ -137,7 +137,7 @@ func TestEvaluateScopeFunction(t *testing.T) {
 
 func TestEvaluateMapTwoItems(t *testing.T) {
     scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("{1: 2, \"str\": 12.4}")), scope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`{1: 2, "str": 12.4}`)), scope)
 
     mapObject, err := obj.GetMap()
 
@@ -154,5 +154,18 @@ func TestEvaluateMap2(t *testing.T) {
 
     if mapObject == nil || err != nil {
         t.Errorf("%v is not list", mapObject)
+    }
+}
+
+func TestEvaluateMapWithGetItem(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        d = {1: 2}
+        d[1]
+    `)), scope)
+
+    expected := &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v != %v.", obj, expected)
     }
 }

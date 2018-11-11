@@ -801,3 +801,51 @@ func TestGetNextASTFunctionWithinFunctionWithoutArguments(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTSimpleGetItem(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`x[1 + 2]`))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
+            Value: &i.Token{"+", i.SIGN},
+        },
+        Value: &i.Token{"", i.SPECIAL_INDEX},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTSimpleGetItemMultipleLine(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        d = {1: 2}
+        d[1]
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"d", i.IDENTIFIER}},
+            Right: &i.AST{
+                Left: &i.AST{
+                    Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                    Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
+                    Value: &i.Token{":", i.SIGN},
+                },
+                Value: &i.Token{"", i.SPECIAL_BLOCK},
+            },
+            Value: &i.Token{"=", i.SIGN},
+        },
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"d", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Value: &i.Token{"", i.SPECIAL_INDEX},
+        },
+        Value: &i.Token{"\n", i.NEWLINE},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

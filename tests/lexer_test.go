@@ -821,3 +821,27 @@ func TestGetNextTokenDictMultilineWithTrailingWhitespace(t *testing.T) {
     expected = &i.Token{"", i.EOF}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }
+
+func TestGetNextTokenSimpleGetItem(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`my_dict[12]`))
+
+    token, _ := i.GetNextToken(inputBuffer)
+    expected := &i.Token{"my_dict", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_INDEX}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"[", i.BRACKET_LEFT}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"12", i.NUMBER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"]", i.BRACKET_RIGHT}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+}

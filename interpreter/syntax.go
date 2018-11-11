@@ -40,7 +40,7 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "*": 100,
     "%": 100,
     "^": 110,
-    ".": 120,
+    ".": 130,
 }
 
 func GetWeight(value interface{}) uint {
@@ -61,6 +61,8 @@ func GetWeight(value interface{}) uint {
         return 60
     } else if token.Type == SPECIAL_TYPE {
         return 40
+    } else if token.Type == SPECIAL_INDEX {
+        return 120
     } else {
         return BuiltInWeights[token.Value]
     }

@@ -24,8 +24,13 @@ func StringObjectString(input [](*Object), scope *Scope) (*Object, error) {
     return input[0], nil
 }
 
+func StringObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
+    return arguments[0], nil
+}
+
 func NewStringObject(value string) (*Object, error) {
     return NewObject(TYPE_STRING, value, StringMetaObject, map[string](*Object) {
         "__plus__": NewCallable("__plus__", BuiltInStringPlus),
+        "__hash__": NewCallable("__hash__", StringObjectHash),
     }), nil
 }

@@ -50,6 +50,10 @@ func BuiltInFloatPower(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewFloatObject(math.Pow(float64(left_value), float64(right_value)))
 }
 
+func FloatObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
+    return arguments[0], nil
+}
+
 func NewFloatObject(value float64) (*Object, error) {
     return NewObject(TYPE_FLOAT, value, FloatMetaObject, map[string](*Object) {
         "__plus__": NewCallable("__plus__", BuiltInFloatPlus),
@@ -57,5 +61,6 @@ func NewFloatObject(value float64) (*Object, error) {
         "__asterisk__": NewCallable("__asterisk__", BuiltInFloatAsterisk),
         "__slash__": NewCallable("__slash__", BuiltInFloatSlash),
         "__power__": NewCallable("__power__", BuiltInFloatPower),
+        "__hash__": NewCallable("__hash__", FloatObjectHash),
     }), nil
 }
