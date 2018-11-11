@@ -157,7 +157,7 @@ func TestEvaluateMap2(t *testing.T) {
     }
 }
 
-func TestEvaluateMapWithGetItem(t *testing.T) {
+func TestEvaluateMapWithIndex(t *testing.T) {
     scope := i.NewScope(i.BuiltInScope)
     obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
         d = {1: 2}
@@ -165,6 +165,19 @@ func TestEvaluateMapWithGetItem(t *testing.T) {
     `)), scope)
 
     expected := &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v != %v.", obj, expected)
+    }
+}
+
+func TestEvaluateListWithIndex(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        l = [1, 2]
+        l[0]
+    `)), scope)
+
+    expected := &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}
     if !compareObjects(obj, expected) {
         t.Errorf("%v != %v.", obj, expected)
     }

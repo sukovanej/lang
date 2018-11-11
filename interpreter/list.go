@@ -32,8 +32,19 @@ func ListObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewStringObject(result)
 }
 
+func ListObjectIndex(arguments [](*Object), scope *Scope) (*Object, error) {
+    list, err := arguments[0].GetList()
+    if err != nil { return nil, err }
+
+    index, err := arguments[1].GetNumber()
+    if err != nil { return nil, err }
+
+    return list[index], nil
+}
+
 func NewListObject(value [](*Object)) (*Object, error) {
     return NewObject(TYPE_LIST, value, ListMetaObject, map[string](*Object) {
         "__string__": NewCallable("__string__", ListObjectString),
+        "__index__": NewCallable("__string__", ListObjectIndex),
     }), nil
 }
