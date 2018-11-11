@@ -849,3 +849,22 @@ func TestGetNextASTSimpleGetItemMultipleLine(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTSimpleFunctionCallWithListAsArgument(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        print([1, 2])
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
+            Value: &i.Token{",", i.SPECIAL_LIST},
+        },
+        Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

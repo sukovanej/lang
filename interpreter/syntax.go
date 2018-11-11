@@ -121,16 +121,9 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
     for token != nil && token.Type != EOF {
         if token.Type == BRACKET_LEFT {
             operatorStack.Push(token)
+            waitingForOperator = false
         } else if token.Type == BRACKET_RIGHT {
-            var wantedBracket string
-
-            switch token.Value {
-            case ")": wantedBracket = "("
-            case "]": wantedBracket = "["
-            case "}": wantedBracket = "{"
-            }
-
-            for operatorStack.Len() > 0 && GetToken(operatorStack.Peek()).Value != wantedBracket {
+            for operatorStack.Len() > 0 && GetToken(operatorStack.Peek()).Type != BRACKET_LEFT {
                 operator := GetToken(operatorStack.Pop())
 
                 right := expressionStack.Pop()
@@ -146,7 +139,7 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
                 expressionStack.Push(&AST{Value: operator, Left: GetAST(left), Right: GetAST(right)})
             }
 
-            if expressionStack.Len() > 0 && GetAST(expressionStack.Peek()).Value.Value == "," {
+            if expressionStack.Len() > 0 && GetAST(expressionStack.Peek()).Value.Value == "," && GetAST(expressionStack.Peek()).Value.Type == SIGN {
                 ast := GetAST(expressionStack.Pop())
 
                 switch token.Value {
