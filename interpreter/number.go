@@ -61,12 +61,12 @@ func NumberObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
 
 func NewNumberObject(value int64) (*Object, error) {
     return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
-        "__plus__": NewCallable("__plus__", BuiltInNumberPlus),
-        "__minus__": NewCallable("__minus__", BuiltInNumberMinus),
-        "__asterisk__": NewCallable("__asterisk__", BuiltInNumberAsterisk),
-        "__slash__": NewCallable("__slash__", BuiltInNumberSlash),
-        "__modulo__": NewCallable("__modulo__", BuiltInNumberModulo),
-        "__power__": NewCallable("__power__", BuiltInNumberPower),
-        "__hash__": NewCallable("__hash__", NumberObjectHash),
+        "__plus__": NewCallable(BuiltInNumberPlus),
+        "__minus__": NewCallable(BuiltInNumberMinus),
+        "__asterisk__": NewCallable(BuiltInNumberAsterisk),
+        "__slash__": NewCallable(BuiltInNumberSlash),
+        "__modulo__": NewCallable(BuiltInNumberModulo),
+        "__power__": NewCallable(BuiltInNumberPower),
+        "__hash__": NewCallable(NumberObjectHash),
     }), nil
 }

@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	_ "fmt"
+	"fmt"
     "strings"
     "testing"
 
@@ -180,5 +180,46 @@ func TestEvaluateListWithIndex(t *testing.T) {
     expected := &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}
     if !compareObjects(obj, expected) {
         t.Errorf("%v != %v.", obj, expected)
+    }
+}
+
+func TestEvaluateNewInstanceWithoutInit(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    i.Evaluate(bufio.NewReader(strings.NewReader(`
+        type X {
+            var = 1
+        }
+
+        x = X()
+        x.var = 2
+    `)), scope)
+
+    if !compareObjects(scope.Symbols["x"].Slots["var"], &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", scope.Symbols["x"])
+    }
+
+    if !compareObjects(scope.Symbols["X"].Slots["var"], &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", scope.Symbols["X"].Slots["var"])
+    }
+}
+
+func TestEvaluateNewInstanceWithInit(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        type X {
+            var = 1
+
+            __init__(self, x) -> {
+                self.x = x
+            }
+        }
+
+        x = X(2)
+    `)), scope)
+
+    fmt.Println(obj.Slots)
+
+    if !compareObjects(obj.Slots["x"], &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", scope.Symbols["x"])
     }
 }

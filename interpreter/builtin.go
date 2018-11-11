@@ -12,7 +12,47 @@ func createStringObject(value string) (*Object) {
     return result
 }
 
-var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) { "__string__": createStringObject("<type object>") }}
+func CopyObject(value *Object) *Object {
+    return NewObject(value.Type, value.Value, value.Meta, CopySlots(value.Slots))
+}
+
+func CopyArguments(arguments [](*Object)) [](*Object) {
+    newArguments := make([](*Object), len(arguments))
+
+    for index, value := range arguments {
+        newArguments[index] = CopyObject(value)
+    }
+
+    return newArguments
+}
+
+func CopySlots(slots map[string](*Object)) map[string](*Object) {
+    newSlots := make(map[string](*Object), len(slots))
+
+    for symbol, value := range slots {
+        newSlots[symbol] = CopyObject(value)
+    }
+
+    return newSlots
+}
+
+func BuiltInNewInstance(arguments [](*Object), scope *Scope) (*Object, error) {
+    newArguments := CopyArguments(arguments)
+
+    if initCallable, ok := newArguments[0].Slots["__init__"]; ok {
+        initCallable.Slots["__call__"].Value.(ObjectCallable)(
+            newArguments,
+            scope,
+        )
+    }
+
+    return newArguments[0], nil
+}
+
+var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) {
+    "__string__": createStringObject("<type object>"),
+    "__call__": NewObject(TYPE_OBJECT, ObjectCallable(BuiltInNewInstance), nil, nil),
+}}
 
 func (object *Object) GetMetaObject() (*Object, error) {
     if object.Meta == nil {
@@ -78,7 +118,7 @@ func NewBinaryFormObject(name string, callable ObjectFormCallable) (*Object) {
     })
 }
 
-func NewCallable(name string, callable ObjectCallable) (*Object) {
+func NewCallable(callable ObjectCallable) (*Object) {
 	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object) {
         "__call__": NewObject(TYPE_OBJECT, callable, nil, nil),
     })
@@ -88,6 +128,8 @@ func BuiltInDotForm(input [](*AST), scope *Scope) (*Object, error) {
     object, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
+    fmt.Println(input[1].Value.Value, object.Slots)
+
     result, ok := object.Slots[input[1].Value.Value]
     if !ok { return nil, errors.New("Symbol new found") }
 
@@ -95,13 +137,21 @@ func BuiltInDotForm(input [](*AST), scope *Scope) (*Object, error) {
 }
 
 func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
+    leftSide := input[0]
+
     value, err := evaluateAST(input[1], scope)
     if err != nil { return nil, err }
 
-    if input[0].Left == nil && input[0].Right == nil {
+    if leftSide.Value.Type == SIGN && leftSide.Value.Value == "." {
+        symbol := leftSide.Right.Value.Value
+        object, err := evaluateAST(leftSide.Left, scope)
+        if err != nil { return nil, err }
+
+        object.Slots[symbol] = value
+    } else if input[0].Left == nil && input[0].Right == nil {
         scope.Symbols[input[0].Value.Value] = value
     } else {
-        return nil, errors.New("Not implemented")
+        return nil, errors.New("Runtime error: lhs must be symbol or object property")
     }
 
 	return value, nil
@@ -155,8 +205,8 @@ var BuiltInScope = &Scope{
         "true": TrueObject,
         "false": FalseObject,
 
-        "meta": NewCallable("meta", BuiltInMeta),
-        "print": NewCallable("print", BuiltInPrint),
-        "scope": NewCallable("scope", BuiltInFunctionScope),
+        "meta": NewCallable(BuiltInMeta),
+        "print": NewCallable(BuiltInPrint),
+        "scope": NewCallable(BuiltInFunctionScope),
     },
 }

@@ -192,6 +192,15 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         callableObject, err := evaluateAST(ast.Left, scope)
         if err != nil { return nil, err }
 
+        argumentsTuple := make([](*Object), 0)
+
+        if callableObject.Type == TYPE_OBJECT {
+            meta, err := callableObject.GetMetaObject()
+            if err != nil { return nil, err }
+            argumentsTuple = [](*Object) { callableObject }
+            callableObject = meta
+        }
+
         var argumentsObject *Object
 
         if ast.Right.Value.Type != SPECIAL_NO_ARGUMENTS {
@@ -200,10 +209,10 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         }
 
         if argumentsObject == nil {
-            argumentsObject, err = NewTupleObject([](*Object) {})
+            argumentsObject, err = NewTupleObject(argumentsTuple)
             if err != nil { return nil, err }
         } else if argumentsObject.Type != TYPE_TUPLE {
-            argumentsObject, err = NewTupleObject([](*Object) {argumentsObject})
+            argumentsObject, err = NewTupleObject(append(argumentsTuple, argumentsObject))
             if err != nil { return nil, err }
         }
 
@@ -322,10 +331,9 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, error) {
         formalArguments = left.Left
     }
 
-    function := NewCallable(name, func (arguments [](*Object), scope *Scope) (*Object, error) {
+    function := NewCallable(func (arguments [](*Object), scope *Scope) (*Object, error) {
         localScope := NewScope(scope)
         argumentNames, err := getFormalArguments(formalArguments, []string{})
-
         if err != nil { return nil, err }
 
         for i, arg := range argumentNames {

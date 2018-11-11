@@ -78,7 +78,7 @@ func StringObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
 
 func NewStringObject(value string) (*Object, error) {
     return NewObject(TYPE_STRING, value, StringMetaObject, map[string](*Object) {
-        "__plus__": NewCallable("__plus__", BuiltInStringPlus),
-        "__hash__": NewCallable("__hash__", StringObjectHash),
+        "__plus__": NewCallable(BuiltInStringPlus),
+        "__hash__": NewCallable(StringObjectHash),
     }), nil
 }

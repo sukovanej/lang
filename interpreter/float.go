@@ -56,11 +56,11 @@ func FloatObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
 
 func NewFloatObject(value float64) (*Object, error) {
     return NewObject(TYPE_FLOAT, value, FloatMetaObject, map[string](*Object) {
-        "__plus__": NewCallable("__plus__", BuiltInFloatPlus),
-        "__minus__": NewCallable("__minus__", BuiltInFloatMinus),
-        "__asterisk__": NewCallable("__asterisk__", BuiltInFloatAsterisk),
-        "__slash__": NewCallable("__slash__", BuiltInFloatSlash),
-        "__power__": NewCallable("__power__", BuiltInFloatPower),
-        "__hash__": NewCallable("__hash__", FloatObjectHash),
+        "__plus__": NewCallable(BuiltInFloatPlus),
+        "__minus__": NewCallable(BuiltInFloatMinus),
+        "__asterisk__": NewCallable(BuiltInFloatAsterisk),
+        "__slash__": NewCallable(BuiltInFloatSlash),
+        "__power__": NewCallable(BuiltInFloatPower),
+        "__hash__": NewCallable(FloatObjectHash),
     }), nil
 }

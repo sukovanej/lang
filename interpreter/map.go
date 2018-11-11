@@ -75,8 +75,8 @@ func MapObjectLen(arguments [](*Object), scope *Scope) (*Object, error) {
 
 func NewMapObject(value MapObject) (*Object, error) {
     return NewObject(TYPE_MAP, value, MapMetaObject, map[string](*Object) {
-        "__string__": NewCallable("__string__", MapObjectString),
-        "__index__": NewCallable("__index__", MapObjectIndex),
-        "len": NewCallable("__string__", MapObjectLen),
+        "__string__": NewCallable(MapObjectString),
+        "__index__": NewCallable(MapObjectIndex),
+        "len": NewCallable(MapObjectLen),
     }), nil
 }

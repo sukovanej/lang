@@ -44,7 +44,7 @@ func ListObjectIndex(arguments [](*Object), scope *Scope) (*Object, error) {
 
 func NewListObject(value [](*Object)) (*Object, error) {
     return NewObject(TYPE_LIST, value, ListMetaObject, map[string](*Object) {
-        "__string__": NewCallable("__string__", ListObjectString),
-        "__index__": NewCallable("__string__", ListObjectIndex),
+        "__string__": NewCallable( ListObjectString),
+        "__index__": NewCallable( ListObjectIndex),
     }), nil
 }
