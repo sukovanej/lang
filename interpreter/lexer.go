@@ -165,7 +165,7 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
                 specialGetItem = true
             }
 
-            if newType == IDENTIFIER || newType == UNDERSCORE {
+            if newType == IDENTIFIER || newType == UNDERSCORE || newType == NUMBER {
                 newType = IDENTIFIER
                 valueBuffer.WriteRune(newValue)
             } else {

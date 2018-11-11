@@ -868,3 +868,21 @@ func TestGetNextASTSimpleFunctionCallWithListAsArgument(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTVecImplementation(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        type Vec {
+            __init__(self, x, y, z) -> {
+                self.x = x
+                self.y = y
+                self.z = z
+            }
+
+            __string__(self) -> "(" + self.x + ", " + self.y + ", " + self.z + ")"
+        }
+
+        vec_1 = Vec(1, 2, 3)
+    `))
+
+    i.GetNextAST(inputBuffer)
+}

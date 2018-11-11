@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	"fmt"
+	_ "fmt"
     "strings"
     "testing"
 
@@ -217,9 +217,34 @@ func TestEvaluateNewInstanceWithInit(t *testing.T) {
         x = X(2)
     `)), scope)
 
-    fmt.Println(obj.Slots)
-
     if !compareObjects(obj.Slots["x"], &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
         t.Errorf("%v", scope.Symbols["x"])
+    }
+}
+
+func TestEvaluateVecImplementation(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        type Vec {
+            __init__(self, x, y, z) -> {
+                self.x = x
+                self.y = y
+                self.z = z
+            }
+        }
+
+        vec_1 = Vec(1, 2, 3)
+    `)), scope)
+
+    if !compareObjects(obj.Slots["x"], &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj.Slots["x"])
+    }
+
+    if !compareObjects(obj.Slots["y"], &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj.Slots["y"])
+    }
+
+    if !compareObjects(obj.Slots["z"], &i.Object{Value: int64(3), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj.Slots["z"])
     }
 }

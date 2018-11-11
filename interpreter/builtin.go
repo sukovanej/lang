@@ -128,8 +128,6 @@ func BuiltInDotForm(input [](*AST), scope *Scope) (*Object, error) {
     object, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
-    fmt.Println(input[1].Value.Value, object.Slots)
-
     result, ok := object.Slots[input[1].Value.Value]
     if !ok { return nil, errors.New("Symbol new found") }
 

@@ -845,3 +845,19 @@ func TestGetNextTokenSimpleGetItem(t *testing.T) {
     expected = &i.Token{"]", i.BRACKET_RIGHT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }
+
+func TestGetNextTokenNameWithNumber(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`x_1 = 1`))
+
+    token, _ := i.GetNextToken(inputBuffer)
+    expected := &i.Token{"x_1", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"=", i.SIGN}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"1", i.NUMBER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+}

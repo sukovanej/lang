@@ -214,6 +214,10 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         } else if argumentsObject.Type != TYPE_TUPLE {
             argumentsObject, err = NewTupleObject(append(argumentsTuple, argumentsObject))
             if err != nil { return nil, err }
+        } else {
+            arguments, _ := argumentsObject.GetTuple()
+            argumentsObject, err = NewTupleObject(append(argumentsTuple, arguments...))
+            if err != nil { return nil, err }
         }
 
         if callable, ok := callableObject.Slots["__call__"]; ok {
