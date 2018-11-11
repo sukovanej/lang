@@ -182,10 +182,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 
         name := ast.Left.Value.Value
         block, err := evaluateAST(ast.Right, localScope)
-        fmt.Println(ast.Right)
         if err != nil { return nil, err }
 
-        fmt.Println(scope)
         object := NewObject(TYPE_OBJECT, block, nil, localScope.Symbols)
         scope.Symbols[name] = object
 

@@ -96,12 +96,19 @@ func GetTokenType(c rune) TokenType {
     return ERROR
 }
 
+var specialFunctionCallNext = false
+
 func GetNextToken(buffer *bufio.Reader) (*Token, error) {
+    if specialFunctionCallNext {
+        specialFunctionCallNext = false
+        return &Token{"", SPECIAL_FUNCTION_CALL}, nil
+    }
+
     var valueBuffer bytes.Buffer
 
     previousValue, _, err := buffer.ReadRune()
     if err != nil {
-        return &Token{"", EOF}, err
+        return &Token{"", EOF}, nil
     }
     previousType := GetTokenType(previousValue)
 
@@ -143,6 +150,10 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
 
         switch previousType {
         case IDENTIFIER, UNDERSCORE:
+            if newValue == '(' {
+                specialFunctionCallNext = true
+            }
+
             if newType == IDENTIFIER || newType == UNDERSCORE {
                 newType = IDENTIFIER
                 valueBuffer.WriteRune(newValue)

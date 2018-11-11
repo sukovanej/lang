@@ -52,79 +52,17 @@ func TestGetNextASTComplicatedExpr(t *testing.T) {
     expected := &i.AST{
         Left: &i.AST{Value: &i.Token{"myvar", i.IDENTIFIER}},
         Right: &i.AST{
-            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Right: &i.AST{
-                Left: &i.AST{
+            Left: &i.AST{
+                Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Right: &i.AST{
                     Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
                     Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
                     Value: &i.Token{"*", i.SIGN},
                 },
-                Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                Value: &i.Token{"-", i.SIGN},
+                Value: &i.Token{"+", i.SIGN},
             },
-            Value: &i.Token{"+", i.SIGN},
-        },
-        Value: &i.Token{"=", i.SIGN},
-    }
-
-    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
-}
-
-func TestGetNextASTComplicatedExpr2(t *testing.T) {
-    inputBuffer := bufio.NewReader(strings.NewReader("myvar = 1+1*1-2+3"))
-
-    ast, _ := i.GetNextAST(inputBuffer)
-    expected := &i.AST{
-        Left: &i.AST{Value: &i.Token{"myvar", i.IDENTIFIER}},
-        Right: &i.AST{
-            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Right: &i.AST{
-                Left: &i.AST{
-                    Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                    Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                    Value: &i.Token{"*", i.SIGN},
-                },
-                Right: &i.AST{
-                    Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                    Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
-                    Value: &i.Token{"+", i.SIGN},
-                },
-                Value: &i.Token{"-", i.SIGN},
-            },
-            Value: &i.Token{"+", i.SIGN},
-        },
-        Value: &i.Token{"=", i.SIGN},
-    }
-
-    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
-}
-
-func TestGetNextASTComplicatedExpr3(t *testing.T) {
-    inputBuffer := bufio.NewReader(strings.NewReader("myvar = 1+1*1*2-2+3"))
-
-    ast, _ := i.GetNextAST(inputBuffer)
-    expected := &i.AST{
-        Left: &i.AST{Value: &i.Token{"myvar", i.IDENTIFIER}},
-        Right: &i.AST{
-            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Right: &i.AST{
-                Left: &i.AST{
-                    Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                    Right: &i.AST{
-                        Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                        Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                            Value: &i.Token{"*", i.SIGN},
-                    },
-                    Value: &i.Token{"*", i.SIGN},
-                },
-                Right: &i.AST{
-                    Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                    Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
-                    Value: &i.Token{"+", i.SIGN},
-                },
-                Value: &i.Token{"-", i.SIGN},
-            },
-            Value: &i.Token{"+", i.SIGN},
+            Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
+            Value: &i.Token{"-", i.SIGN},
         },
         Value: &i.Token{"=", i.SIGN},
     }
@@ -141,19 +79,19 @@ func TestGetNextASTParentheses(t *testing.T) {
         Right: &i.AST{
             Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
             Right: &i.AST{
-                Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                Right: &i.AST{
+                Left: &i.AST{
                     Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                    Right: &i.AST{
+                    Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                    Value: &i.Token{"*", i.SIGN},
+                },
+                Right: &i.AST{
+                    Left: &i.AST{
                         Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                        Right: &i.AST{
-                            Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                            Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
-							Value: &i.Token{"+", i.SIGN},
-                        },
+                        Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
                         Value: &i.Token{"-", i.SIGN},
                     },
-                    Value: &i.Token{"*", i.SIGN},
+                    Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
+                    Value: &i.Token{"+", i.SIGN},
                 },
                 Value: &i.Token{"*", i.SIGN},
             },
@@ -166,43 +104,6 @@ func TestGetNextASTParentheses(t *testing.T) {
 }
 
 func TestGetNextASTParentheses2(t *testing.T) {
-    inputBuffer := bufio.NewReader(strings.NewReader("myvar = 1+1*1*(2-2+3) + 2"))
-
-    ast, _ := i.GetNextAST(inputBuffer)
-    expected := &i.AST{
-        Left: &i.AST{Value: &i.Token{"myvar", i.IDENTIFIER}},
-        Right: &i.AST{
-            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Right: &i.AST{
-                Left: &i.AST{
-                    Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                    Right: &i.AST{
-                        Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                        Right: &i.AST{
-                            Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                            Right: &i.AST{
-                                Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                                Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
-                                Value: &i.Token{"+", i.SIGN},
-                            },
-							Value: &i.Token{"-", i.SIGN},
-                        },
-						Value: &i.Token{"*", i.SIGN},
-                    },
-                    Value: &i.Token{"*", i.SIGN},
-                },
-                Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-                Value: &i.Token{"+", i.SIGN},
-            },
-            Value: &i.Token{"+", i.SIGN},
-        },
-        Value: &i.Token{"=", i.SIGN},
-    }
-
-    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
-}
-
-func TestGetNextASTParentheses3(t *testing.T) {
     inputBuffer := bufio.NewReader(strings.NewReader("(1+1)*(1-1)"))
 
     ast, _ := i.GetNextAST(inputBuffer)
@@ -312,15 +213,15 @@ func TestGetNextASTTuple(t *testing.T) {
     ast, _ := i.GetNextAST(inputBuffer)
     expected := &i.AST{
         Left: &i.AST{
-            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Value: &i.Token{"+", i.SIGN},
-        },
-        Right: &i.AST{
-            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Left: &i.AST{
+                Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+                Value: &i.Token{"+", i.SIGN},
+            },
             Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
             Value: &i.Token{",", i.SIGN},
         },
+        Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
         Value: &i.Token{",", i.SPECIAL_TUPLE},
     }
 
@@ -338,14 +239,11 @@ func TestGetNextASTList(t *testing.T) {
                 Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
                 Value: &i.Token{"+", i.SIGN},
             },
-            Right: &i.AST{
-                Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                Value: &i.Token{",", i.SIGN},
-            },
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
             Value: &i.Token{",", i.SIGN},
         },
-        Value: &i.Token{"", i.SPECIAL_LIST},
+        Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+        Value: &i.Token{",", i.SPECIAL_LIST},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -362,14 +260,11 @@ func TestGetNextASTBlock(t *testing.T) {
                 Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
                 Value: &i.Token{"+", i.SIGN},
             },
-            Right: &i.AST{
-                Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-                Value: &i.Token{",", i.SIGN},
-            },
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
             Value: &i.Token{",", i.SIGN},
         },
-        Value: &i.Token{"", i.SPECIAL_BLOCK},
+        Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+        Value: &i.Token{",", i.SPECIAL_BLOCK},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -474,7 +369,7 @@ func TestGetNextASTTypeExpression(t *testing.T) {
 			},
 			Value: &i.Token{"", i.SPECIAL_BLOCK},
 		},
-        Value: &i.Token{"type", i.SPECIAL_TYPE},
+        Value: &i.Token{"", i.SPECIAL_TYPE},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -503,12 +398,12 @@ func TestGetNextASTTypeOperator(t *testing.T) {
 					Left: &i.AST{
 						Left: &i.AST{Value: &i.Token{"__binary__", i.IDENTIFIER}},
 						Right: &i.AST{
-							Left: &i.AST{Value: &i.Token{"self", i.IDENTIFIER}},
-							Right: &i.AST{
-								Left: &i.AST{Value: &i.Token{"left", i.IDENTIFIER}},
-								Right: &i.AST{Value: &i.Token{"right", i.IDENTIFIER}},
+							Left: &i.AST{
+								Left: &i.AST{Value: &i.Token{"self", i.IDENTIFIER}},
+								Right: &i.AST{Value: &i.Token{"left", i.IDENTIFIER}},
 								Value: &i.Token{",", i.SIGN},
 							},
+							Right: &i.AST{Value: &i.Token{"right", i.IDENTIFIER}},
 							Value: &i.Token{",", i.SPECIAL_TUPLE},
 						},
 						Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
@@ -531,7 +426,7 @@ func TestGetNextASTTypeOperator(t *testing.T) {
 			},
 			Value: &i.Token{"", i.SPECIAL_BLOCK},
 		},
-        Value: &i.Token{"type", i.SPECIAL_TYPE},
+        Value: &i.Token{"", i.SPECIAL_TYPE},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -619,12 +514,12 @@ func TestGetNextASTSimpleTuple(t *testing.T) {
 
     ast, _ := i.GetNextAST(inputBuffer)
     expected := &i.AST{
-        Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-        Right: &i.AST{
-            Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
-            Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Right: &i.AST{Value: &i.Token{"2", i.NUMBER}},
             Value: &i.Token{",", i.SIGN},
         },
+        Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
         Value: &i.Token{",", i.SPECIAL_TUPLE},
 	}
 
@@ -663,12 +558,12 @@ func TestGetNextASTSimpleTupleWithPlusPlusPlus(t *testing.T) {
             Value: &i.Token{",", i.SIGN},
         },
         Right: &i.AST{
-            Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Right: &i.AST{
+            Left: &i.AST{
                 Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
                 Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
                 Value: &i.Token{"+", i.SIGN},
             },
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
             Value: &i.Token{"+", i.SIGN},
         },
         Value: &i.Token{",", i.SPECIAL_TUPLE},
@@ -738,11 +633,6 @@ func TestGetNextASTMultiline(t *testing.T) {
     ast, _ := i.GetNextAST(inputBuffer)
     expected := &i.AST{
         Left: &i.AST{
-            Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
-            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
-            Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
-        },
-        Right: &i.AST{
             Right: &i.AST{
                 Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
                 Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
@@ -754,6 +644,11 @@ func TestGetNextASTMultiline(t *testing.T) {
                 Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
             },
             Value: &i.Token{"\n", i.NEWLINE},
+        },
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+            Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
         },
         Value: &i.Token{"\n", i.NEWLINE},
     }
@@ -806,7 +701,7 @@ func TestGetNextASTTypeDefinitionWithFunction(t *testing.T) {
 			},
 			Value: &i.Token{"", i.SPECIAL_BLOCK},
 		},
-        Value: &i.Token{"type", i.SPECIAL_TYPE},
+        Value: &i.Token{"", i.SPECIAL_TYPE},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
@@ -874,7 +769,7 @@ func TestGetNextASTTypeDefinitionWithFunctionAndNextStatement(t *testing.T) {
                 },
                 Value: &i.Token{"", i.SPECIAL_BLOCK},
             },
-            Value: &i.Token{"type", i.SPECIAL_TYPE},
+            Value: &i.Token{"", i.SPECIAL_TYPE},
         },
         Right: &i.AST{
             Left: &i.AST{Value: &i.Token{"MyType", i.IDENTIFIER}},

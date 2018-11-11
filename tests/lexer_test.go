@@ -95,6 +95,10 @@ func TestGetNextTokenParenthesis(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
@@ -249,6 +253,10 @@ func TestGetNextTokenTepDefinition(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
@@ -290,6 +298,10 @@ func TestGetNextTokenTepDefinition(t *testing.T) {
 
     token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"__add__", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -380,6 +392,10 @@ func TestGetNextTokenSimpleFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"(", i.BRACKET_LEFT}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
@@ -409,6 +425,10 @@ func TestGetNextTokenSimpleFunctionDefinition(t *testing.T) {
 
     token, _ := i.GetNextToken(inputBuffer)
     expected := &i.Token{"f", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -545,23 +565,7 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"(", i.BRACKET_LEFT}
-    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
-
-    token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"1", i.NUMBER}
-    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
-
-    token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{")", i.BRACKET_RIGHT}
-    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
-
-    token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"\n", i.NEWLINE}
-    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
-
-    token, _ = i.GetNextToken(inputBuffer)
-    expected = &i.Token{"print", i.IDENTIFIER}
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)
@@ -582,6 +586,34 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
 
     token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"print", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"(", i.BRACKET_LEFT}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"1", i.NUMBER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{")", i.BRACKET_RIGHT}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"\n", i.NEWLINE}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"print", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 
     token, _ = i.GetNextToken(inputBuffer)

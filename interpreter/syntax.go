@@ -3,19 +3,22 @@ package interpreter
 import (
     "bufio"
     "fmt"
+
+    "github.com/golang-collections/collections/stack"
 )
 
 type AST struct {
     Left *AST
     Right *AST
-    Parent *AST
     Value *Token
+}
 
-	List [](*AST)
+func NewAST(value *Token) *AST {
+    return &AST{Value: value}
 }
 
 func (a *AST) String() string {
-    if a.Left == nil {
+    if a.Left == nil && a.Right == nil {
         return a.Value.Value
     } else {
         var l, r string
@@ -26,17 +29,40 @@ func (a *AST) String() string {
 }
 
 var BuiltInWeights map[string]uint = map[string]uint{
-    "^": 110,
+    "\n": 0,
+    "=": 30,
+    "->": 50,
+    ",": 80,
+    "+": 90,
+    "-": 90,
     "/": 100,
     "*": 100,
     "%": 100,
-    "+": 90,
-    "-": 90,
-    ".": 80,
-    ",": 70,
-    "->": 60,
-    "=": 50,
-    "\n": 0,
+    "^": 110,
+    ".": 120,
+}
+
+func GetWeight(value interface{}) uint {
+    var token *Token
+
+    if tokenValue, ok := value.(*Token); ok {
+        token = tokenValue
+    } else if str, ok := value.(string); ok {
+        return BuiltInWeights[str]
+    } else if ast, ok := value.(*AST); ok {
+        token = ast.Value
+    } else {
+        fmt.Printf("type: %T", value)
+        panic("I dont know the precedence :(")
+    }
+
+    if token.Type == SPECIAL_FUNCTION_CALL {
+        return 60
+    } else if token.Type == SPECIAL_TYPE {
+        return 40
+    } else {
+        return BuiltInWeights[token.Value]
+    }
 }
 
 func removeTrailingWhitespaces(buffer *bufio.Reader) {
@@ -49,112 +75,130 @@ func removeTrailingWhitespaces(buffer *bufio.Reader) {
 	buffer.UnreadRune()
 }
 
+func GetToken(value interface{}) *Token {
+    if token, ok := value.(*Token); ok {
+        return token
+    }
+
+    panic("value is not Token")
+}
+
+func GetAST(value interface{}) *AST {
+    if token, ok := value.(*Token); ok {
+        return NewAST(token)
+    } else if ast, ok := value.(*AST); ok {
+        return ast
+    } else if value == nil {
+        return nil
+    }
+
+    fmt.Printf("%T", value)
+    panic("value is not Token or AST")
+}
+
 func GetNextAST(buffer *bufio.Reader) (*AST, error) {
 	removeTrailingWhitespaces(buffer)
-    result, err, _ := getNextAST(buffer, nil, SPECIAL_NONE)
+    result, err := getNextAST(buffer)
+
+    if err != nil {
+        fmt.Println("ERROR: ", err)
+    }
+
     return result, err
 }
 
-func getNextAST(buffer *bufio.Reader, last *AST, pairToken TokenType) (*AST, error, bool) {
-    left, err := GetNextToken(buffer)
-    if err != nil { return nil, err, false }
+func getNextAST(buffer *bufio.Reader) (*AST, error) {
+    operatorStack := stack.New()
+    expressionStack := stack.New()
 
-    if left.Type == pairToken {
-        return nil, nil, false
-    }
+    waitingForOperator := false
+    token, err := GetNextToken(buffer)
 
-    var leftAST *AST
-    if left.Type == BRACKET_LEFT {
-        leftAST, _, _ = getNextAST(buffer, nil, BRACKET_RIGHT)
+    for token != nil && token.Type != EOF {
+        if token.Type == BRACKET_LEFT {
+            operatorStack.Push(token)
+        } else if token.Type == BRACKET_RIGHT {
+            var wantedBracket string
 
-        if left.Value == "[" {
-            leftAST = &AST{Value: &Token{"", SPECIAL_LIST}, Left: leftAST}
-        } else if left.Value == "{" {
-            leftAST = &AST{Value: &Token{"", SPECIAL_BLOCK}, Left: leftAST}
-        }
-
-        if last != nil {
-            leftAST.Parent = last
-        }
-    } else {
-        leftAST = &AST{Value: left, Parent: last}
-    }
-
-	if left.Value == "type" {
-		typeName, err := GetNextToken(buffer)
-		if err != nil { return nil, err, false }
-
-		typeNameAST := &AST{Value: typeName}
-        leftAST = &AST{Value: &Token{"type", SPECIAL_TYPE}, Left: typeNameAST, Parent: last}
-
-		argumentsAST, _, _ := getNextAST(buffer, nil, pairToken)
-		leftAST.Right = argumentsAST
-	}
-
-    middle, _ := GetNextToken(buffer)
-
-    if middle.Type == BRACKET_LEFT && middle.Value == "(" {
-        argumentsAST, _, _ := getNextAST(buffer, nil, BRACKET_RIGHT)
-		leftAST = &AST{Left: leftAST, Right: argumentsAST, Value: &Token{"", SPECIAL_FUNCTION_CALL}}
-
-		middle, _ = GetNextToken(buffer)
-	} else if middle.Type == SIGN && middle.Value == "," && pairToken == BRACKET_RIGHT { // is initial tuple token
-        newLast := last
-        for newLast!= nil && newLast.Value.Type != SPECIAL_TUPLE && (newLast.Value.Type != SIGN || newLast.Value.Value != ",") {
-            newLast = last.Parent
-        }
-
-        if newLast == nil {
-            middle.Type = SPECIAL_TUPLE
-        }
-    }
-
-    if middle.Type == EOF || middle.Type == pairToken {
-        if last != nil {
-            last.Right = leftAST
-        }
-        return leftAST, nil, false
-    }
-
-    var ast *AST
-    overwrite := false
-    if last != nil && BuiltInWeights[middle.Value] < BuiltInWeights[last.Value.Value] {
-        newParent := last
-
-        for newParent.Parent != nil && BuiltInWeights[middle.Value] < BuiltInWeights[newParent.Value.Value] {
-            newParent = newParent.Parent
-        }
-
-        last.Right = leftAST
-
-        if newParent.Parent == nil {
-            ast = &AST{Left: newParent, Parent: nil, Value: middle}
-            if newParent.Value.Type == SPECIAL_TUPLE && isTupleSign(middle) {
-                newParent.Value.Type = SIGN
-                ast.Value.Type = SPECIAL_TUPLE
+            switch token.Value {
+            case ")": wantedBracket = "("
+            case "]": wantedBracket = "["
+            case "}": wantedBracket = "{"
             }
-            overwrite = true
+
+            for operatorStack.Len() > 0 && GetToken(operatorStack.Peek()).Value != wantedBracket {
+                operator := GetToken(operatorStack.Pop())
+
+                right := expressionStack.Pop()
+                left := expressionStack.Pop()
+
+                if operator.Type == SPECIAL_FUNCTION_CALL && left == nil {
+                    left = right
+                    right = nil
+                }
+
+                expressionStack.Push(&AST{Value: operator, Left: GetAST(left), Right: GetAST(right)})
+            }
+
+            if expressionStack.Len() > 0 && GetAST(expressionStack.Peek()).Value.Value == "," {
+                ast := GetAST(expressionStack.Pop())
+
+                switch token.Value {
+                case ")": ast.Value.Type = SPECIAL_TUPLE
+                case "]": ast.Value.Type = SPECIAL_LIST
+                case "}": ast.Value.Type = SPECIAL_BLOCK
+                }
+
+                expressionStack.Push(ast)
+            } else if GetToken(token).Value == "}" {
+                ast := GetAST(expressionStack.Pop())
+                expressionStack.Push(&AST{Value: &Token{Type: SPECIAL_BLOCK}, Left: ast})
+            }
+
+            operatorStack.Pop()
+            waitingForOperator = true
+        } else if waitingForOperator {
+            for operatorStack.Len() > 0 && GetToken(operatorStack.Peek()).Type != BRACKET_LEFT && GetWeight(operatorStack.Peek()) >= GetWeight(token) {
+                operator := operatorStack.Pop()
+
+                right := expressionStack.Pop()
+                left := expressionStack.Pop()
+
+                expressionStack.Push(&AST{Value: GetToken(operator), Left: GetAST(left), Right: GetAST(right)})
+            }
+
+            operatorStack.Push(token)
+            waitingForOperator = false
         } else {
-            ast = &AST{Left: newParent.Right, Parent: newParent, Value: middle}
-            newParent.Right = ast
-        }
-    } else {
-        ast = &AST{Left: leftAST, Parent: last, Value: middle}
+            if token.Value == "type" {
+                token, err = GetNextToken(buffer)
+                if err != nil { return nil, err }
 
-        if last != nil {
-            last.Right = ast
+                expressionStack.Push(NewAST(token))
+                operatorStack.Push(&Token{Type: SPECIAL_TYPE})
+            } else {
+                expressionStack.Push(NewAST(token))
+                waitingForOperator = true
+            }
         }
+
+        token, err = GetNextToken(buffer)
+        if err != nil { return nil, err }
     }
 
-    newAST, _, overwriteByLowerAST := getNextAST(buffer, ast, pairToken)
+    for operatorStack.Len() > 0 {
+        operator := GetToken(operatorStack.Pop())
 
-    if overwriteByLowerAST {
-        ast = newAST
+        right := expressionStack.Pop()
+        left := expressionStack.Pop()
+
+        if operator.Type == SPECIAL_FUNCTION_CALL && left == nil {
+            left = right
+            right = nil
+        }
+
+        expressionStack.Push(&AST{Value: GetToken(operator), Left: GetAST(left), Right: GetAST(right)})
     }
 
-    return ast, nil, overwrite || overwriteByLowerAST
-}
-
-func isTupleSign(token *Token) bool {
-    return token.Type == SIGN && token.Value == ","
+    return GetAST(expressionStack.Pop()), nil
 }
