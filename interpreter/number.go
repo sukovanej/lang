@@ -4,7 +4,6 @@ import (
     "errors"
     "fmt"
 	"math"
-    "strconv"
 )
 
 func (o *Object) GetNumber() (int64, error) {
@@ -56,15 +55,8 @@ func BuiltInNumberPower(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewFloatObject(math.Pow(float64(left_value), float64(right_value)))
 }
 
-func NumberObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
-    number, err := arguments[0].GetNumber()
-    if err != nil { return nil, err }
-    return NewStringObject(strconv.FormatInt(number, 10))
-}
-
 func NewNumberObject(value int64) (*Object, error) {
     return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
-        "__string__": NewCallable("__string__", NumberObjectString),
         "__plus__": NewCallable("__plus__", BuiltInNumberPlus),
         "__minus__": NewCallable("__minus__", BuiltInNumberMinus),
         "__asterisk__": NewCallable("__asterisk__", BuiltInNumberAsterisk),

@@ -4,7 +4,6 @@ import (
     "errors"
     "fmt"
     "math"
-    "strconv"
 )
 
 func (o *Object) GetFloat() (float64, error) {
@@ -51,15 +50,8 @@ func BuiltInFloatPower(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewFloatObject(math.Pow(float64(left_value), float64(right_value)))
 }
 
-func FloatObjectString(input [](*Object), scope *Scope) (*Object, error) {
-    number, err := input[0].GetFloat()
-    if err != nil { return nil, err }
-    return NewStringObject(strconv.FormatFloat(number, 'E', -1, 10))
-}
-
 func NewFloatObject(value float64) (*Object, error) {
     return NewObject(TYPE_FLOAT, value, FloatMetaObject, map[string](*Object) {
-        "__string__": NewCallable("__string__", FloatObjectString),
         "__plus__": NewCallable("__plus__", BuiltInFloatPlus),
         "__minus__": NewCallable("__minus__", BuiltInFloatMinus),
         "__asterisk__": NewCallable("__asterisk__", BuiltInFloatAsterisk),
