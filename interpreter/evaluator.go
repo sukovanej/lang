@@ -194,7 +194,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 
         var argumentsObject *Object
 
-        if ast.Right != nil {
+        if ast.Right.Value.Type != SPECIAL_NO_ARGUMENTS {
             argumentsObject, err = evaluateAST(ast.Right, scope)
             if err != nil { return nil, err }
         }

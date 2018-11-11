@@ -113,6 +113,7 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
 
     waitingForOperator := false
     token, err := GetNextToken(buffer)
+    var previousToken *Token
 
     for token != nil && token.Type != EOF {
         if token.Type == BRACKET_LEFT {
@@ -130,11 +131,13 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
                 operator := GetToken(operatorStack.Pop())
 
                 right := expressionStack.Pop()
-                left := expressionStack.Pop()
+                var left interface{}
 
-                if operator.Type == SPECIAL_FUNCTION_CALL && left == nil {
+                if token.Value == ")" && previousToken.Value == "(" {
                     left = right
                     right = nil
+                } else {
+                    left = expressionStack.Pop()
                 }
 
                 expressionStack.Push(&AST{Value: operator, Left: GetAST(left), Right: GetAST(right)})
@@ -182,6 +185,7 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
             }
         }
 
+        previousToken = token
         token, err = GetNextToken(buffer)
         if err != nil { return nil, err }
     }
@@ -190,11 +194,13 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
         operator := GetToken(operatorStack.Pop())
 
         right := expressionStack.Pop()
-        left := expressionStack.Pop()
+        var left interface{}
 
-        if operator.Type == SPECIAL_FUNCTION_CALL && left == nil {
+        if token.Value == ")" && previousToken.Value == "(" {
             left = right
             right = nil
+        } else {
+            left = expressionStack.Pop()
         }
 
         expressionStack.Push(&AST{Value: GetToken(operator), Left: GetAST(left), Right: GetAST(right)})

@@ -3,6 +3,7 @@ package interpreter
 import (
     "bufio"
     "bytes"
+    _ "fmt"
     "unicode"
 )
 type TokenType int
@@ -37,6 +38,7 @@ const (
     SPECIAL_TUPLE
     SPECIAL_TYPE
     SPECIAL_NONE
+    SPECIAL_NO_ARGUMENTS
 )
 
 func (t *Token) String() string {
@@ -57,8 +59,8 @@ func (t *TokenType) String() string {
         case KEYWORD_OR: return "KEYWORD_OR"
         case KEYWORD_NULL: return "KEYWORD_NULL"
         case KEYWORD_FN: return "KEYWORD_FN"
-        case BRACKET_LEFT: return "BRACKET_BRACKET_LEFT"
-        case BRACKET_RIGHT: return "BRACKET_BRACKET_RIGHT"
+        case BRACKET_LEFT: return "BRACKET_LEFT"
+        case BRACKET_RIGHT: return "BRACKET_RIGHT"
         case NEWLINE: return "NEWLINE"
         case STRING: return "STRING"
         case SPECIAL_LIST: return "SPECIAL_LIST"
@@ -67,6 +69,7 @@ func (t *TokenType) String() string {
         case SPECIAL_TUPLE: return "SPECIAL_TUPLE"
         case SPECIAL_TYPE: return "SPECIAL_TYPE"
         case SPECIAL_NONE: return "SPECIAL_NONE"
+        case SPECIAL_NO_ARGUMENTS: return "SPECIAL_NO_ARGUMENTS"
     }
 
     return "???"
@@ -185,8 +188,13 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
             }
             break Loop
         case BRACKET_LEFT:
-            if newType != GAP && newType != NEWLINE {
-                buffer.UnreadRune()
+            if previousValue == '(' && newValue == ')' {
+                previousType = SPECIAL_NO_ARGUMENTS
+                valueBuffer.Reset()
+            } else {
+                if newType != GAP && newType != NEWLINE {
+                    buffer.UnreadRune()
+                }
             }
             break Loop
         case SIGN:

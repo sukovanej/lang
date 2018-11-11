@@ -715,6 +715,7 @@ func TestGetNextASTScopeFunctionCall(t *testing.T) {
     ast, _ := i.GetNextAST(inputBuffer)
     expected := &i.AST{
         Left: &i.AST{Value: &i.Token{"scope", i.IDENTIFIER}},
+        Right: &i.AST{Value: &i.Token{"", i.SPECIAL_NO_ARGUMENTS}},
         Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
     }
 
@@ -782,3 +783,21 @@ func TestGetNextASTTypeDefinitionWithFunctionAndNextStatement(t *testing.T) {
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
 
+func TestGetNextASTFunctionWithinFunctionWithoutArguments(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        print(scope())
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"scope", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"", i.SPECIAL_NO_ARGUMENTS}},
+            Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+        },
+        Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

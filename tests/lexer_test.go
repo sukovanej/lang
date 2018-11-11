@@ -629,7 +629,6 @@ func TestGetNextTokenMultilinePrintFunctionCall(t *testing.T) {
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }
 
-
 func TestGetNextTokenSimpleString(t *testing.T) {
     inputBuffer := bufio.NewReader(strings.NewReader(`"a" + "ahoj\"alsfkj"`))
 
@@ -643,5 +642,21 @@ func TestGetNextTokenSimpleString(t *testing.T) {
 
     token, _ = i.GetNextToken(inputBuffer)
     expected = &i.Token{"ahoj\"alsfkj", i.STRING}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+}
+
+func TestGetNextTokenFunctionWithoutArguments(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("f()"))
+
+    token, _ := i.GetNextToken(inputBuffer)
+    expected := &i.Token{"f", i.IDENTIFIER}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_FUNCTION_CALL}
+    if *token != *expected { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = i.GetNextToken(inputBuffer)
+    expected = &i.Token{"", i.SPECIAL_NO_ARGUMENTS}
     if *token != *expected { t.Errorf("%v != %v.", token, expected) }
 }
