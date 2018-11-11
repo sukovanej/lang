@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	"fmt"
+	_ "fmt"
     "strings"
     "testing"
 
@@ -84,7 +84,7 @@ func TestEvaluateDotOperator(t *testing.T) {
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
-func TestEvaluateTypeDefinition(t *testing.T) {
+func TestEvaluateTypeDefinitionWithFunction(t *testing.T) {
     scope := i.NewScope(i.BuiltInScope)
     obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
         type MyType {
@@ -101,7 +101,7 @@ func TestEvaluateTypeDefinition(t *testing.T) {
         t.Errorf("%v != %v.", obj, expectedMyVar)
     }
 
-    if scope.Symbols["MyType"].Slots["my_fn"].Value == nil {
+    if scope.Symbols["MyType"].Slots["my_fn"].Slots["__call__"] == nil {
         t.Errorf("%v is nil", scope.Symbols["MyType"].Slots["my_fn"].Value)
     }
 }
@@ -115,8 +115,6 @@ func TestEvaluateTypeDefinitionWithSlotCall(t *testing.T) {
 
         MyType.my_var
     `)), scope)
-
-    fmt.Println(obj)
 
     expected := &i.Object{Value: int64(12), Type: i.TYPE_NUMBER}
     if !compareObjects(obj, expected) {
