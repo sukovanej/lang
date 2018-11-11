@@ -188,6 +188,11 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
             }
             break Loop
         case BRACKET_LEFT:
+            for newType == NEWLINE || newType == GAP {
+                newValue, _, err = buffer.ReadRune()
+                newType = GetTokenType(newValue)
+            }
+
             if previousValue == '(' && newValue == ')' {
                 previousType = SPECIAL_NO_ARGUMENTS
                 valueBuffer.Reset()
@@ -198,6 +203,10 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
             }
             break Loop
         case SIGN:
+            for newType == NEWLINE || newType == GAP {
+                newValue, _, err = buffer.ReadRune()
+                newType = GetTokenType(newValue)
+            }
             if newType == SIGN {
                 valueBuffer.WriteRune(newValue)
             } else {

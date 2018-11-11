@@ -217,10 +217,51 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 
         return nil, errors.New("Runtime error: " + ast.Left.Value.Value + " is not callable")
 	} else if ast.Value.Type == SPECIAL_BLOCK {
-        return evaluateAST(ast.Left, scope)
+        if ast.Left.Value.Type == SIGN && (ast.Left.Value.Value == ":" || ast.Left.Value.Value == ",") {
+            objectMap := make(MapObject)
+
+            objectMap, err := evaluateASTMap(ast.Left, scope, objectMap)
+            if err != nil { return nil, err }
+
+            if ast.Right != nil {
+                objectMap, err = evaluateASTMap(ast.Right, scope, objectMap)
+                if err != nil { return nil, err }
+            }
+
+            return NewMapObject(objectMap)
+        } else {
+            return evaluateAST(ast.Left, scope)
+        }
     }
 
     return nil, errors.New("Runtime error, undefined syntax : " + ast.String())
+}
+
+func evaluateASTMap(ast *AST, scope *Scope, objectMap MapObject) (MapObject, error) {
+    if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == "," {
+        objectMap, err := evaluateASTMap(ast.Left, scope, objectMap)
+        if err != nil { return nil, err }
+
+        objectMap, err = evaluateASTMap(ast.Right, scope, objectMap)
+        if err != nil { return nil, err }
+
+        return objectMap, nil
+    } else if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == ":" {
+        objectKey, err := evaluateAST(ast.Left, scope)
+        if err != nil { return nil, err }
+
+        objectValue, err := evaluateAST(ast.Right, scope)
+        if err != nil { return nil, err }
+
+        objectMap[objectKey] = objectValue
+
+        return objectMap, nil
+    } else {
+        //object, err := evaluateAST(ast, scope)
+        //if err != nil { return nil, err }
+        //return object, nil
+        panic("Not implemented")
+    }
 }
 
 func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Object), error) {
