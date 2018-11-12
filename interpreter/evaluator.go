@@ -119,9 +119,12 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		}
     } else if ast.Value.Type == SPECIAL_LIST {
         var objectList [](*Object)
+        var err error
 
-        objectList, err := evaluateASTTuple(ast.Left, scope, objectList)
-        if err != nil { return nil, err }
+        if ast.Left != nil {
+            objectList, err = evaluateASTTuple(ast.Left, scope, objectList)
+            if err != nil { return nil, err }
+        }
 
         if ast.Right != nil {
             objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
@@ -255,6 +258,32 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         } else {
             return nil, errors.New("Runtime error: __index__ not found.")
         }
+	} else if ast.Value.Type == SPECIAL_FOR {
+        block := ast.Right
+        listObject, err := evaluateAST(ast.Left.Right, scope)
+        if err != nil { return nil, err }
+
+        symbol := ast.Left.Left.Value.Value
+
+        forScope := NewScope(scope)
+        forScope.Symbols[symbol] = nil
+
+        if listObject.Type == TYPE_LIST {
+            forInput, err := listObject.GetList()
+            if err != nil { return nil, err }
+
+            var last *Object = NilObject
+
+            for _, item := range forInput {
+                forScope.Symbols[symbol] = item
+                last, err = evaluateAST(block, forScope)
+                if err != nil { return nil, err }
+            }
+
+            return last, nil
+        }
+
+        panic("Not implemented yet :(")
 	} else if ast.Value.Type == SPECIAL_BLOCK {
         if ast.Left.Value.Type == SIGN && (ast.Left.Value.Value == ":" || ast.Left.Value.Value == ",") {
             objectMap := make(MapObject)

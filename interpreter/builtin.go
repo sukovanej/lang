@@ -202,6 +202,7 @@ var BuiltInScope = &Scope{
 
         "true": TrueObject,
         "false": FalseObject,
+        "nil": NilObject,
 
         "meta": NewCallable(BuiltInMeta),
         "print": NewCallable(BuiltInPrint),

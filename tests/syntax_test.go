@@ -910,6 +910,7 @@ func TestGetNextASTDotOperatorWithFunctionCall(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
 func TestGetNextASTSingleElementList(t *testing.T) {
     inputBuffer := bufio.NewReader(strings.NewReader("[1]"))
 
@@ -918,6 +919,47 @@ func TestGetNextASTSingleElementList(t *testing.T) {
     expected := &i.AST{
         Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
         Value: &i.Token{"", i.SPECIAL_LIST},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTForStatement(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        for x <- l {
+            x
+        }
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+
+    expected := &i.AST{
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"l", i.IDENTIFIER}},
+            Value: &i.Token{"<-", i.SIGN},
+        },
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+            Value: &i.Token{"", i.SPECIAL_BLOCK},
+        },
+        Value: &i.Token{"", i.SPECIAL_FOR},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTEmptyList(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        l = []
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"l", i.IDENTIFIER}},
+        Right: &i.AST{Value: &i.Token{"", i.SPECIAL_LIST}},
+        Value: &i.Token{"=", i.SIGN},
     }
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }

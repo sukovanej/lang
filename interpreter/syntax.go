@@ -30,7 +30,8 @@ func (a *AST) String() string {
 
 var BuiltInWeights map[string]uint = map[string]uint{
     "\n": 0,
-    "=": 30,
+    "=": 20,
+    "<-": 40,
     "->": 50,
     ",": 70,
     ":": 80,
@@ -59,8 +60,10 @@ func GetWeight(value interface{}) uint {
 
     if token.Type == SPECIAL_FUNCTION_CALL {
         return 60
+    } else if token.Type == SPECIAL_FOR {
+        return 30
     } else if token.Type == SPECIAL_TYPE {
-        return 40
+        return 30
     } else if token.Type == SPECIAL_INDEX {
         return 120
     } else {
@@ -101,7 +104,7 @@ func GetAST(value interface{}) *AST {
 
 func GetNextAST(buffer *bufio.Reader) (*AST, error) {
 	removeTrailingWhitespaces(buffer)
-    result, err := getNextAST(buffer)
+    result, err := getNextAST(buffer, nil)
 
     if err != nil {
         fmt.Println("ERROR: ", err)
@@ -110,7 +113,7 @@ func GetNextAST(buffer *bufio.Reader) (*AST, error) {
     return result, err
 }
 
-func getNextAST(buffer *bufio.Reader) (*AST, error) {
+func getNextAST(buffer *bufio.Reader, stopOnToken *Token) (*AST, error) {
     operatorStack := stack.New()
     expressionStack := stack.New()
 
@@ -119,6 +122,10 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
     var previousToken *Token
 
     for token != nil && token.Type != EOF {
+        if stopOnToken != nil && token.Value == stopOnToken.Value && token.Type == stopOnToken.Type {
+            break
+        }
+
         if token.Type == BRACKET_LEFT {
             operatorStack.Push(token)
             waitingForOperator = false
@@ -150,8 +157,12 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
 
                 expressionStack.Push(ast)
             } else if GetToken(token).Value == "]" {
-                ast := GetAST(expressionStack.Pop())
-                expressionStack.Push(&AST{Value: &Token{Type: SPECIAL_LIST}, Left: ast})
+                if previousToken.Value == "[" {
+                    expressionStack.Push(&AST{Value: &Token{Type: SPECIAL_LIST}})
+                } else {
+                    ast := GetAST(expressionStack.Pop())
+                    expressionStack.Push(&AST{Value: &Token{Type: SPECIAL_LIST}, Left: ast})
+                }
             } else if GetToken(token).Value == "}" {
                 ast := GetAST(expressionStack.Pop())
                 expressionStack.Push(&AST{Value: &Token{Type: SPECIAL_BLOCK}, Left: ast})
@@ -178,6 +189,14 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
 
                 expressionStack.Push(NewAST(token))
                 operatorStack.Push(&Token{Type: SPECIAL_TYPE})
+            } else if token.Value == "for" {
+                bracketToken := &Token{Value: "{", Type: BRACKET_LEFT}
+                statement, err := getNextAST(buffer, bracketToken)
+                if err != nil { return nil, err }
+
+                expressionStack.Push(statement)
+                operatorStack.Push(&Token{Type: SPECIAL_FOR})
+                operatorStack.Push(bracketToken)
             } else {
                 expressionStack.Push(NewAST(token))
                 waitingForOperator = true
