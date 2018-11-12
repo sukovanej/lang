@@ -62,10 +62,38 @@ func (o *Object) GetString() (string, error) {
 }
 
 func BuiltInStringPlus(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetString()
-    right_value, _ := arguments[1].GetString()
+    leftValue, err := arguments[0].GetString()
+    if err != nil { return nil, err }
 
-    return NewStringObject(left_value + right_value)
+    var rightValue string
+    if arguments[1].Type == TYPE_STRING {
+        rightValue, err = arguments[1].GetString()
+        if err != nil { return nil, err }
+    } else if stringObject, ok := arguments[1].Slots["__string__"]; ok {
+        if stringObject.Type == TYPE_CALLABLE {
+            stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ arguments[1] }, scope)
+            if err != nil { return nil, err }
+
+            rightValue, err = stringObject.GetString()
+        } else if stringObject.Type == TYPE_STRING {
+            rightValue, err = stringObject.GetString()
+            if err != nil { return nil, err }
+        } else {
+            return nil, errors.New("Runtime error: __string__ must be of type string or callable.")
+        }
+    } else if arguments[1].Type == TYPE_NUMBER {
+        number, err := arguments[1].GetNumber()
+        if err != nil { return nil, err }
+        rightValue = strconv.FormatInt(number, 10)
+    } else if arguments[1].Type == TYPE_FLOAT {
+        number, err := arguments[1].GetFloat()
+        if err != nil { return nil, err }
+        rightValue = strconv.FormatFloat(number, 'E', -1, 10)
+    } else {
+        return nil, errors.New("Runtime error: cant convert to string")
+    }
+
+    return NewStringObject(leftValue + rightValue)
 }
 
 func StringObjectString(input [](*Object), scope *Scope) (*Object, error) {
