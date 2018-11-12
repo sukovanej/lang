@@ -149,6 +149,9 @@ func getNextAST(buffer *bufio.Reader) (*AST, error) {
                 }
 
                 expressionStack.Push(ast)
+            } else if GetToken(token).Value == "]" {
+                ast := GetAST(expressionStack.Pop())
+                expressionStack.Push(&AST{Value: &Token{Type: SPECIAL_LIST}, Left: ast})
             } else if GetToken(token).Value == "}" {
                 ast := GetAST(expressionStack.Pop())
                 expressionStack.Push(&AST{Value: &Token{Type: SPECIAL_BLOCK}, Left: ast})

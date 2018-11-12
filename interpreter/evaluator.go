@@ -242,7 +242,11 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         mapObject, err := evaluateAST(ast.Left, scope)
         if err != nil { return nil, err }
 
-        indexObject, err := evaluateAST(ast.Right, scope)
+        if ast.Right.Right != nil {
+            return nil, errors.New("Runtime error: index must be a single value")
+        }
+
+        indexObject, err := evaluateAST(ast.Right.Left, scope)
         if err != nil { return nil, err }
 
         if callable, ok := mapObject.Slots["__index__"]; ok {

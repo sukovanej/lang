@@ -42,9 +42,24 @@ func ListObjectIndex(arguments [](*Object), scope *Scope) (*Object, error) {
     return list[index], nil
 }
 
+func ListObjectAdd(arguments [](*Object), scope *Scope) (*Object, error) {
+    obj := arguments[0]
+    list, err := obj.GetList()
+    if err != nil { return nil, err }
+
+    for _, value := range arguments[1:] {
+        list = append(list, value)
+    }
+
+    obj.Value = list
+
+    return obj, nil
+}
+
 func NewListObject(value [](*Object)) (*Object, error) {
     return NewObject(TYPE_LIST, value, ListMetaObject, map[string](*Object) {
         "__string__": NewCallable( ListObjectString),
         "__index__": NewCallable( ListObjectIndex),
+        "add": NewCallable( ListObjectAdd),
     }), nil
 }
