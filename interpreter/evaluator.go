@@ -189,15 +189,25 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 
         return object, nil
 	} else if ast.Value.Type == SPECIAL_FUNCTION_CALL {
-        callableObject, err := evaluateAST(ast.Left, scope)
-        if err != nil { return nil, err }
+        var callableObject *Object
+        var err error
 
         argumentsTuple := make([](*Object), 0)
+
+        if ast.Left.Value.Type == SIGN && ast.Left.Value.Value == "." {
+            selfObject, err := evaluateAST(ast.Left.Left, scope)
+            if err != nil { return nil, err }
+            argumentsTuple = append(argumentsTuple, selfObject)
+            callableObject = selfObject.Slots[ast.Left.Right.Value.Value]
+        } else {
+            callableObject, err = evaluateAST(ast.Left, scope)
+            if err != nil { return nil, err }
+        }
 
         if callableObject.Type == TYPE_OBJECT {
             meta, err := callableObject.GetMetaObject()
             if err != nil { return nil, err }
-            argumentsTuple = [](*Object) { callableObject }
+            argumentsTuple = append(argumentsTuple, callableObject)
             callableObject = meta
         }
 

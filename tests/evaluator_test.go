@@ -248,3 +248,25 @@ func TestEvaluateVecImplementation(t *testing.T) {
         t.Errorf("%v", obj.Slots["z"])
     }
 }
+
+func TestEvaluateVecImplementationWithAnotherFunction(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        type Vec {
+            __init__(self, x, y, z) -> {
+                self.x = x
+                self.y = y
+                self.z = z
+            }
+
+            f(self) -> self.x + self.y + self.z
+        }
+
+        vec_1 = Vec(1, 2, 3)
+        vec_1.f()
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: int64(6), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}

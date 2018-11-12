@@ -886,3 +886,21 @@ func TestGetNextASTVecImplementation(t *testing.T) {
 
     i.GetNextAST(inputBuffer)
 }
+
+func TestGetNextASTDotOperatorWithFunctionCall(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader("a.b()"))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+
+    expected := &i.AST{
+        Left: &i.AST{
+            Left: &i.AST{Value: &i.Token{"a", i.IDENTIFIER}},
+            Right: &i.AST{Value: &i.Token{"b", i.IDENTIFIER}},
+            Value: &i.Token{".", i.SIGN},
+        },
+        Right: &i.AST{Value: &i.Token{"", i.SPECIAL_NO_ARGUMENTS}},
+        Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
