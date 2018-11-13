@@ -19,8 +19,12 @@ func ListObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
 
     result := "["
     for _, item := range list {
-        str, err := item.GetStringRepresentation(scope)
+        strObject, err := item.GetStringRepresentation(scope)
         if err != nil { return nil, err }
+
+        str, err := strObject.GetString()
+        if err != nil { return nil, err }
+
         result += str + ", "
     }
 

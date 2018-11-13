@@ -79,7 +79,7 @@ var MapMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__s
 var TupleMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type tuple>") })
 var BoolMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type bool>") })
 
-var NilObject = NewObject(TYPE_BOOL, nil, nil, map[string](*Object) { "__string__": createStringObject("nil") })
+var NilObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("nil") })
 
 var TrueObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": createStringObject("true") })
 var FalseObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": createStringObject("false") })
@@ -157,12 +157,23 @@ func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
 
 func BuiltInPrint(input [](*Object), scope *Scope) (*Object, error) {
     for _, obj := range input {
-        str, err := obj.GetStringRepresentation(scope)
+        strObject, err := obj.GetStringRepresentation(scope)
         if err != nil { return nil, err }
+
+        str, err := strObject.GetString()
+        if err != nil { return nil, err }
+
         fmt.Println(str)
     }
 
-	return MetaObject, nil
+	return NilObject, nil
+}
+
+func BuiltInStr(input [](*Object), scope *Scope) (*Object, error) {
+    stringObject, err := input[0].GetStringRepresentation(scope)
+    if err != nil { return nil, err }
+
+	return stringObject, nil
 }
 
 func BuiltInFunctionScope(input [](*Object), scope *Scope) (*Object, error) {
@@ -207,5 +218,6 @@ var BuiltInScope = &Scope{
         "meta": NewCallable(BuiltInMeta),
         "print": NewCallable(BuiltInPrint),
         "scope": NewCallable(BuiltInFunctionScope),
+        "str": NewCallable(BuiltInStr),
     },
 }

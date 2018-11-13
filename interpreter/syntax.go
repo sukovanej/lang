@@ -59,7 +59,7 @@ func GetWeight(value interface{}) uint {
     }
 
     switch token.Type {
-    case SPECIAL_FUNCTION_CALL: return 80
+    case SPECIAL_FUNCTION_CALL: return 120
     case SPECIAL_TUPLE: return 60
     case SPECIAL_FOR: return 30
     case SPECIAL_TYPE: return 30

@@ -270,3 +270,36 @@ func TestEvaluateVecImplementationWithAnotherFunction(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateStrFunction(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        str(10)
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: "10", Type: i.TYPE_STRING}) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateStrFunctionWithPlus(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        str(1) + str(0)
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: "10", Type: i.TYPE_STRING}) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateStrFunctionWithPlusInPrintFunction(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        print(str(1) + str(0))
+    `)), scope)
+
+    if !compareObjects(obj, i.NilObject) {
+        t.Errorf("%v", obj)
+    }
+}

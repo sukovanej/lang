@@ -32,10 +32,14 @@ func MapObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
 
     result := "{"
     for _, value := range mapObject {
-        keyStr, err := value[0].GetStringRepresentation(scope)
+        keyStrObject, err := value[0].GetStringRepresentation(scope)
+        if err != nil { return nil, err }
+        keyStr, err := keyStrObject.GetString()
         if err != nil { return nil, err }
 
-        valueStr, err := value[1].GetStringRepresentation(scope)
+        valueStrObject, err := value[1].GetStringRepresentation(scope)
+        if err != nil { return nil, err }
+        valueStr, err := valueStrObject.GetString()
         if err != nil { return nil, err }
 
         result += keyStr + ":" + valueStr + ", "
