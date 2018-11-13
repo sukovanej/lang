@@ -32,8 +32,8 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "\n": 0,
     "=": 20,
     "<-": 40,
-    "->": 50,
-    ",": 70,
+    ",": 50,
+    "->": 70,
     ":": 80,
     "+": 90,
     "-": 90,
@@ -58,16 +58,13 @@ func GetWeight(value interface{}) uint {
         panic("I dont know the precedence :(")
     }
 
-    if token.Type == SPECIAL_FUNCTION_CALL {
-        return 60
-    } else if token.Type == SPECIAL_FOR {
-        return 30
-    } else if token.Type == SPECIAL_TYPE {
-        return 30
-    } else if token.Type == SPECIAL_INDEX {
-        return 120
-    } else {
-        return BuiltInWeights[token.Value]
+    switch token.Type {
+    case SPECIAL_FUNCTION_CALL: return 80
+    case SPECIAL_TUPLE: return 60
+    case SPECIAL_FOR: return 30
+    case SPECIAL_TYPE: return 30
+    case SPECIAL_INDEX: return 120
+    default: return BuiltInWeights[token.Value]
     }
 }
 

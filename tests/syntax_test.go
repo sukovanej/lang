@@ -964,3 +964,31 @@ func TestGetNextASTEmptyList(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTLambdasAsArguments(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        print((x) -> x, (y) -> y)
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"print", i.IDENTIFIER}},
+        Right: &i.AST{
+            Left: &i.AST{
+                Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+                Right: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+                Value: &i.Token{"->", i.SIGN},
+            },
+            Right: &i.AST{
+                Left: &i.AST{Value: &i.Token{"y", i.IDENTIFIER}},
+                Right: &i.AST{Value: &i.Token{"y", i.IDENTIFIER}},
+                Value: &i.Token{"->", i.SIGN},
+            },
+            Value: &i.Token{",", i.SPECIAL_TUPLE},
+        },
+        Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
