@@ -303,3 +303,15 @@ func TestEvaluateStrFunctionWithPlusInPrintFunction(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateAnonymousFunction(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        eval_fn(fn, arg) -> fn(arg)
+        eval_fn((x) -> 2 * x, 1)
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}

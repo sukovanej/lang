@@ -1020,3 +1020,31 @@ func TestGetNextASTFunctionInFunction(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTLambdaFunctionAsSingleArgument(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        f(g((x) -> x, l))
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"f", i.IDENTIFIER}},
+        Right: &i.AST{
+            Left: &i.AST{Value: &i.Token{"g", i.IDENTIFIER}},
+            Right: &i.AST{
+                Left: &i.AST{
+                    Left: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+                    Right: &i.AST{Value: &i.Token{"x", i.IDENTIFIER}},
+                    Value: &i.Token{"->", i.SIGN},
+                },
+                Right: &i.AST{Value: &i.Token{"l", i.IDENTIFIER}},
+                Value: &i.Token{",", i.SPECIAL_TUPLE},
+            },
+            Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+        },
+        Value: &i.Token{"", i.SPECIAL_FUNCTION_CALL},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

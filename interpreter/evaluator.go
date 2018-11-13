@@ -373,9 +373,12 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, error) {
     if left.Value.Type == SPECIAL_FUNCTION_CALL {
         name = left.Left.Value.Value
         formalArguments = left.Right
-    } else {
+    } else if left.Value.Type == SPECIAL_TUPLE {
         name = "lambda"
         formalArguments = left.Left
+    } else {
+        name = "lambda"
+        formalArguments = left
     }
 
     function := NewCallable(func (arguments [](*Object), scope *Scope) (*Object, error) {
