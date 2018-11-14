@@ -16,8 +16,10 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
     }
 
     if stringObject, ok = obj.Slots["__string__"]; ok {
-        stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
-        if err != nil { return nil, err }
+        if stringObject.Type != TYPE_STRING {
+            stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
+            if err != nil { return nil, err }
+        }
     } else if obj.Type == TYPE_NUMBER {
         number, err := obj.GetNumber()
         if err != nil { return nil, err }
