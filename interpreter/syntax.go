@@ -44,28 +44,48 @@ var BuiltInWeights map[string]uint = map[string]uint{
     ".": 130,
 }
 
-func GetWeight(value interface{}) uint {
-    var token *Token
-
-    if tokenValue, ok := value.(*Token); ok {
-        token = tokenValue
-    } else if str, ok := value.(string); ok {
-        return BuiltInWeights[str]
-    } else if ast, ok := value.(*AST); ok {
-        token = ast.Value
-    } else {
-        fmt.Printf("type: %T", value)
-        panic("I dont know the precedence :(")
-    }
-
-    switch token.Type {
+func GetWeight(value *Token) uint {
+    switch value.Type {
     case SPECIAL_FUNCTION_CALL: return 120
     case SPECIAL_TUPLE: return 60
     case SPECIAL_FOR: return 30
     case SPECIAL_TYPE: return 30
     case SPECIAL_INDEX: return 120
-    default: return BuiltInWeights[token.Value]
+    default:
+        if w, ok := BuiltInWeights[value.Value]; ok {
+            return w
+        } else {
+            fmt.Println("unknown_sign")
+            return 90
+        }
     }
+}
+
+func precedence(leftValue, rightValue interface{}) bool {
+    var left, right *Token
+
+    if token, ok := leftValue.(*Token); ok {
+        left = token
+    } else if ast, ok := leftValue.(*AST); ok {
+        left = ast.Value
+    } else {
+        panic("I dont know the precedence :(")
+    }
+
+    if token, ok := rightValue.(*Token); ok {
+        right = token
+    } else if ast, ok := rightValue.(*AST); ok {
+        right = ast.Value
+    } else {
+        panic("I dont know the precedence :(")
+    }
+
+    // TODO: weights to precedence table
+    if (left.Type == SPECIAL_FUNCTION_CALL && right.Type == SIGN && right.Value == ".") || (right.Type == SPECIAL_FUNCTION_CALL && left.Type == SIGN && left.Value == ".") {
+        return true
+    }
+
+    return GetWeight(left) >= GetWeight(right)
 }
 
 func removeTrailingWhitespaces(buffer *bufio.Reader) {
@@ -168,7 +188,7 @@ func getNextAST(buffer *bufio.Reader, stopOnToken *Token) (*AST, error) {
             operatorStack.Pop()
             waitingForOperator = true
         } else if waitingForOperator {
-            for operatorStack.Len() > 0 && GetToken(operatorStack.Peek()).Type != BRACKET_LEFT && GetWeight(operatorStack.Peek()) >= GetWeight(token) {
+            for operatorStack.Len() > 0 && GetToken(operatorStack.Peek()).Type != BRACKET_LEFT && precedence(operatorStack.Peek(), token) {
                 operator := operatorStack.Pop()
 
                 right := expressionStack.Pop()

@@ -172,6 +172,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 			return nil, errors.New("Runtime error: symbol '" + ast.Value.Value + "' not found")
 		}
 	} else if ast.Value.Type == NEWLINE {
+        fmt.Println(ast)
 		left, err := evaluateAST(ast.Left, scope)
         if err != nil { return nil, err }
 

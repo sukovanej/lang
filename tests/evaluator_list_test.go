@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	//"fmt"
+	"fmt"
     "strings"
     "testing"
 
@@ -80,6 +80,22 @@ func TestEvaluateEmptyList(t *testing.T) {
     `)), BuiltInScope)
 
 	expected := &Object{Value: [](*Object){ }, Type: TYPE_LIST}
+
+    if !compareObjects(obj, expected) { t.Errorf("%v \n!=\n %v.", obj, expected) }
+}
+
+func TestEvaluateAddAfterAddCall(t *testing.T) {
+    obj, _ := Evaluate(bufio.NewReader(strings.NewReader(`
+        l = []
+        l.add(1).add(2)
+    `)), BuiltInScope)
+
+	expected := &Object{Value: [](*Object){
+        &Object{Value: int64(1), Type: TYPE_NUMBER},
+        &Object{Value: int64(2), Type: TYPE_NUMBER},
+    }, Type: TYPE_LIST}
+
+    fmt.Println(obj)
 
     if !compareObjects(obj, expected) { t.Errorf("%v \n!=\n %v.", obj, expected) }
 }
