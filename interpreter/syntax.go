@@ -207,11 +207,13 @@ func getNextAST(buffer *bufio.Reader, stopOnToken *Token) (*AST, error) {
             waitingForOperator = false
         } else {
             if token.Value == "type" {
-                token, err = GetNextToken(buffer)
+                bracketToken := &Token{Value: "{", Type: BRACKET_LEFT}
+                typeName, err := getNextAST(buffer, bracketToken)
                 if err != nil { return nil, err }
 
-                expressionStack.Push(NewAST(token))
+                expressionStack.Push(typeName)
                 operatorStack.Push(&Token{Type: SPECIAL_TYPE})
+                operatorStack.Push(bracketToken)
             } else if token.Value == "for" {
                 bracketToken := &Token{Value: "{", Type: BRACKET_LEFT}
                 statement, err := getNextAST(buffer, bracketToken)
