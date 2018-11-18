@@ -20,6 +20,12 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
             stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
             if err != nil { return nil, err }
         }
+    } else if obj == NilObject {
+        stringObject, err = NewStringObject("nil")
+    } else if obj == TrueObject {
+        stringObject, err = NewStringObject("true")
+    } else if obj == FalseObject {
+        stringObject, err = NewStringObject("false")
     } else if obj.Type == TYPE_NUMBER {
         number, err := obj.GetNumber()
         if err != nil { return nil, err }
@@ -29,6 +35,9 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
         number, err := obj.GetFloat()
         if err != nil { return nil, err }
         stringObject, err = NewStringObject(strconv.FormatFloat(number, 'E', -1, 10))
+        if err != nil { return nil, err }
+    } else if obj == BoolMetaObject {
+        stringObject, err = NewStringObject("<type bool>")
         if err != nil { return nil, err }
     } else if obj.Type == TYPE_CALLABLE {
         stringObject, err = NewStringObject(fmt.Sprintf("<callable> @ %p", obj))
@@ -73,6 +82,20 @@ func BuiltInStringPlus(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewStringObject(leftValue + rightValue)
 }
 
+func BuiltInStringEqualCompare(arguments [](*Object), scope *Scope) (*Object, error) {
+    leftValue, err := arguments[0].GetString()
+    if err != nil { return nil, err }
+
+    rightValue, err := arguments[1].GetString()
+    if err != nil { return nil, err }
+
+    if leftValue == rightValue {
+        return TrueObject, nil
+    } else {
+        return FalseObject, nil
+    }
+}
+
 func StringObjectString(input [](*Object), scope *Scope) (*Object, error) {
     return input[0], nil
 }
@@ -84,6 +107,7 @@ func StringObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
 func NewStringObject(value string) (*Object, error) {
     return NewObject(TYPE_STRING, value, StringMetaObject, map[string](*Object) {
         "__plus__": NewCallable(BuiltInStringPlus),
+        "__equal__": NewCallable(BuiltInStringEqualCompare),
         "__hash__": NewCallable(StringObjectHash),
     }), nil
 }

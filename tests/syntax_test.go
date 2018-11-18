@@ -1076,3 +1076,27 @@ func TestGetNextASTMultiDotCalls(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTIfElseExpression(t *testing.T) {
+    inputBuffer := bufio.NewReader(strings.NewReader(`
+        1 if 2 == 3 else 4
+    `))
+
+    ast, _ := i.GetNextAST(inputBuffer)
+
+    expected := &i.AST{
+        Left: &i.AST{Value: &i.Token{"1", i.NUMBER}},
+        Right: &i.AST{
+            Left: &i.AST{
+                Left: &i.AST{Value: &i.Token{"2", i.NUMBER}},
+                Right: &i.AST{Value: &i.Token{"3", i.NUMBER}},
+                Value: &i.Token{"==", i.SIGN},
+            },
+            Right: &i.AST{Value: &i.Token{"4", i.NUMBER}},
+            Value: &i.Token{"else", i.IDENTIFIER},
+        },
+        Value: &i.Token{"if", i.IDENTIFIER},
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

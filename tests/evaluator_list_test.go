@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	"fmt"
+	_ "fmt"
     "strings"
     "testing"
 
@@ -94,8 +94,6 @@ func TestEvaluateAddAfterAddCall(t *testing.T) {
         &Object{Value: int64(1), Type: TYPE_NUMBER},
         &Object{Value: int64(2), Type: TYPE_NUMBER},
     }, Type: TYPE_LIST}
-
-    fmt.Println(obj)
 
     if !compareObjects(obj, expected) { t.Errorf("%v \n!=\n %v.", obj, expected) }
 }

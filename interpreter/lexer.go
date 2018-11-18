@@ -94,7 +94,7 @@ func GetTokenType(c rune) TokenType {
     switch c {
     case ' ', '\t': return GAP
     case '_': return UNDERSCORE
-    case '<', '>', ':', '.', '?', '^', '/', '*', '%', ',', '+', '-', '=', '!', '@', '#', '$': return SIGN
+    case '<', '>', ':', '.', '?', '^', '/', '*', '%', ',', '+', '-', '=', '!', '@', '#', '$', '|': return SIGN
     case '(', '{', '[': return BRACKET_LEFT
     case ')', '}', ']': return BRACKET_RIGHT
     case '\n': return NEWLINE

@@ -77,12 +77,12 @@ var StringMetaObject = NewObject(TYPE_OBJECT, nil, nil, nil)
 var ListMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type list>") })
 var MapMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type map>") })
 var TupleMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type tuple>") })
-var BoolMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<type bool>") })
+var BoolMetaObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) {})
 
 var NilObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("nil") })
 
-var TrueObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": createStringObject("true") })
-var FalseObject = NewObject(TYPE_BOOL, nil, BoolMetaObject, map[string](*Object) { "__string__": createStringObject("false") })
+var TrueObject = NewObject(TYPE_BOOL, true, BoolMetaObject, map[string](*Object) {})
+var FalseObject = NewObject(TYPE_BOOL, false, BoolMetaObject, map[string](*Object) {})
 
 
 func BuiltInPlus(input [](*Object), scope *Scope) (*Object, error) {
@@ -102,6 +102,9 @@ func BuiltInModulo(input [](*Object), scope *Scope) (*Object, error) {
 }
 func BuiltInPower(input [](*Object), scope *Scope) (*Object, error) {
     return input[0].Slots["__power__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+}
+func BuiltInEqualCompare(input [](*Object), scope *Scope) (*Object, error) {
+    return input[0].Slots["__equal__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
 }
 
 func NewBinaryOperatorObject(name string, callable ObjectCallable) (*Object) {
@@ -192,6 +195,43 @@ func BuiltInMeta(input [](*Object), scope *Scope) (*Object, error) {
     return meta, nil
 }
 
+func BuiltInAssert(input [](*Object), scope *Scope) (*Object, error) {
+    if input[0] == TrueObject {
+        return NilObject, errors.New("AssertError: value is false.")
+    }
+    return NilObject, nil
+}
+
+func BuiltInIf(input [](*AST), scope *Scope) (*Object, error) {
+    if input[1].Value.Value == "else" {
+        cond, err := evaluateAST(input[1].Left, scope)
+        if err != nil { return nil, err }
+
+        if cond == TrueObject {
+            left, err := evaluateAST(input[0], scope)
+            if err != nil { return nil, err }
+
+            return left, nil
+        } else {
+            right, err := evaluateAST(input[1].Right, scope)
+            if err != nil { return nil, err }
+
+            return right, nil
+        }
+    }
+
+    cond, err := evaluateAST(input[0].Right, scope)
+    if err != nil { return nil, err }
+
+    if cond == TrueObject {
+        left, err := evaluateAST(input[0], scope)
+        if err != nil { return nil, err }
+        return left, nil
+    } else {
+        return NilObject, nil
+    }
+}
+
 var BuiltInScope = &Scope{
     Symbols: map[string](*Object){
         "+": NewBinaryOperatorObject("+", BuiltInPlus),
@@ -201,7 +241,11 @@ var BuiltInScope = &Scope{
         "%": NewBinaryOperatorObject("%", BuiltInModulo),
         "^": NewBinaryOperatorObject("^", BuiltInPower),
         "=": NewBinaryFormObject("=", BuiltInDefineForm),
-        ".": NewBinaryFormObject("=", BuiltInDotForm),
+        ".": NewBinaryFormObject(".", BuiltInDotForm),
+        "==": NewBinaryOperatorObject("==", BuiltInEqualCompare),
+
+        "if": NewBinaryFormObject("if", BuiltInIf),
+        //"else": NewBinaryFormObject("else", BuiltInElse),
 
         "object": MetaObject,
         "num": NumberMetaObject,
@@ -219,5 +263,6 @@ var BuiltInScope = &Scope{
         "print": NewCallable(BuiltInPrint),
         "scope": NewCallable(BuiltInFunctionScope),
         "str": NewCallable(BuiltInStr),
+        "assert": NewCallable(BuiltInAssert),
     },
 }

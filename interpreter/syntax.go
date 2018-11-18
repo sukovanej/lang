@@ -31,8 +31,12 @@ func (a *AST) String() string {
 var BuiltInWeights map[string]uint = map[string]uint{
     "\n": 0,
     "=": 20,
+    // FOR, TYPE : 30
+    "if": 30,
+    "else": 35,
     "<-": 40,
     ",": 50,
+    // TUPLE : 60
     "->": 70,
     ":": 80,
     "+": 90,
@@ -41,6 +45,8 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "*": 100,
     "%": 100,
     "^": 110,
+    "==": 115,
+    // FUNCTION CALL, INDEX : 120
     ".": 130,
 }
 

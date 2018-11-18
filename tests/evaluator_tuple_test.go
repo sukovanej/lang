@@ -15,6 +15,11 @@ func compareObjects(o1, o2 *i.Object) bool {
 		n2, _ := o2.GetNumber()
 
 		return n1 == n2 && o1.Type == o2.Type
+	} else if o1.Type == i.TYPE_BOOL {
+		n1, _ := o1.GetBool()
+		n2, _ := o2.GetBool()
+
+		return n1 == n2 && o1.Type == o2.Type
 	} else if o1.Type == i.TYPE_STRING {
 		n1, _ := o1.GetString()
 		n2, _ := o2.GetString()

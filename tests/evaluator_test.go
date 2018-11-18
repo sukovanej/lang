@@ -315,3 +315,58 @@ func TestEvaluateAnonymousFunction(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateStringCompare(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        "test" == "test"
+    `)), scope)
+
+    if !compareObjects(obj, i.TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateNumberCompare(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        1 == 1
+    `)), scope)
+
+    if !compareObjects(obj, i.TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateFloatCompare(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        1.2 == 1.2
+    `)), scope)
+
+    if !compareObjects(obj, i.TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateIfElseExpression(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        1 if 2 == 3 else 4
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: int64(4), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateIfElseExpression2(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        1 if 2 == 2 else 4
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}

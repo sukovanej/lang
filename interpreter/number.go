@@ -59,6 +59,20 @@ func NumberObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
     return arguments[0], nil
 }
 
+func BuiltInNumberEqualCompare(arguments [](*Object), scope *Scope) (*Object, error) {
+    leftValue, err := arguments[0].GetNumber()
+    if err != nil { return nil, err }
+
+    rightValue, err := arguments[1].GetNumber()
+    if err != nil { return nil, err }
+
+    if leftValue == rightValue {
+        return TrueObject, nil
+    } else {
+        return FalseObject, nil
+    }
+}
+
 func NewNumberObject(value int64) (*Object, error) {
     return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
         "__plus__": NewCallable(BuiltInNumberPlus),
@@ -68,5 +82,6 @@ func NewNumberObject(value int64) (*Object, error) {
         "__modulo__": NewCallable(BuiltInNumberModulo),
         "__power__": NewCallable(BuiltInNumberPower),
         "__hash__": NewCallable(NumberObjectHash),
+        "__equal__": NewCallable(BuiltInNumberEqualCompare),
     }), nil
 }

@@ -106,7 +106,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 		if err != nil { panic(err) }
 
 		return object, nil
-    } else if ast.Value.Type == IDENTIFIER {
+    } else if ast.Value.Type == IDENTIFIER && ast.Left == nil && ast.Right == nil {
 		object, err := scope.SearchSymbol(ast.Value.Value)
         if err != nil { return nil, err }
 
@@ -144,7 +144,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
         return NewTupleObject(objectList)
 	} else if ast.Value.Type == SIGN && ast.Value.Value == "->" {
         return CreateFunction(ast.Left, ast.Right, scope)
-	} else if ast.Value.Type == SIGN {
+	} else if ast.Value.Type == SIGN || ast.Value.Type == IDENTIFIER {
 		object, err := scope.SearchSymbol(ast.Value.Value)
         if err != nil { return nil, err }
 
@@ -162,7 +162,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
                         right, err := evaluateAST(ast.Right, scope)
                         if err != nil { return nil, err }
 
-						return callable.Value.(ObjectCallable)( [](*Object){ left, right }, scope)
+						return callable.Value.(ObjectCallable)([](*Object){ left, right }, scope)
 					}
 				}
 			} else if ast.Left == nil && ast.Right == nil {
@@ -172,7 +172,6 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 			return nil, errors.New("Runtime error: symbol '" + ast.Value.Value + "' not found")
 		}
 	} else if ast.Value.Type == NEWLINE {
-        fmt.Println(ast)
 		left, err := evaluateAST(ast.Left, scope)
         if err != nil { return nil, err }
 
