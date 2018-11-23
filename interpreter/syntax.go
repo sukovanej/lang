@@ -3,7 +3,6 @@ package interpreter
 import (
     "bufio"
     "fmt"
-
     "github.com/golang-collections/collections/stack"
 )
 
@@ -32,13 +31,13 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "\n": 0,
     "=": 20,
     // FOR, TYPE : 30
-    "if": 30,
-    "else": 35,
     "<-": 40,
     ",": 50,
     // TUPLE : 60
     "->": 70,
     ":": 80,
+    "if": 85,
+    "else": 86,
     "+": 90,
     "-": 90,
     "/": 100,
@@ -61,7 +60,7 @@ func GetWeight(value *Token) uint {
         if w, ok := BuiltInWeights[value.Value]; ok {
             return w
         } else {
-            fmt.Println("unknown_sign")
+            fmt.Printf("Warning: unknown_sign %v, setting the precedence to 90.\n", value.Value)
             return 90
         }
     }

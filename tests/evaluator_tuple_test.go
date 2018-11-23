@@ -2,7 +2,7 @@ package tests
 
 import (
     "bufio"
-	_ "fmt"
+	"fmt"
     "strings"
     "testing"
 
@@ -10,6 +10,10 @@ import (
 )
 
 func compareObjects(o1, o2 *i.Object) bool {
+    if o1 == nil {
+        panic(fmt.Sprintf("o1 is nil"))
+    }
+
 	if o1.Type == i.TYPE_NUMBER {
 		n1, _ := o1.GetNumber()
 		n2, _ := o2.GetNumber()

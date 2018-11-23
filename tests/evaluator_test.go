@@ -370,3 +370,34 @@ func TestEvaluateIfElseExpression2(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateInheritance(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        type A {
+            x = 1
+        }
+
+        type B : A {
+            y = 2
+        }
+
+        B.x
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateFactorial(t *testing.T) {
+    scope := i.NewScope(i.BuiltInScope)
+    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+        fact(n) -> 2 if n == 2 else n * fact(n - 1)
+        fact(4)
+    `)), scope)
+
+    if !compareObjects(obj, &i.Object{Value: int64(24), Type: i.TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}

@@ -61,6 +61,24 @@ func (object *Object) GetMetaObject() (*Object, error) {
     return object.Meta, nil
 }
 
+func (object *Object) GetAttribute(name string) (*Object, error) {
+    var result *Object
+    var found bool
+
+    nextObject := object
+
+    for nextObject != nil {
+        result, found = nextObject.Slots[name]
+        if found { break }
+
+        nextObject = nextObject.Parent
+    }
+
+    if !found { return nil, errors.New("Symbol new found") }
+
+    return result, nil
+}
+
 func NewObject(objectType ObjectType, value interface{}, meta *Object, slots map[string](*Object)) *Object {
     return &Object{
         Meta: meta,
@@ -131,10 +149,7 @@ func BuiltInDotForm(input [](*AST), scope *Scope) (*Object, error) {
     object, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
-    result, ok := object.Slots[input[1].Value.Value]
-    if !ok { return nil, errors.New("Symbol new found") }
-
-    return result, nil
+    return object.GetAttribute(input[1].Value.Value)
 }
 
 func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {

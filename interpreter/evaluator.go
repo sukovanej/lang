@@ -183,11 +183,23 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, error) {
 	} else if ast.Value.Type == SPECIAL_TYPE {
         localScope := NewScope(scope)
 
-        name := ast.Left.Value.Value
+        var name string
+        var parent *Object = nil
+        var err error
+
+        if ast.Left.Value.Value == ":" {
+            name = ast.Left.Left.Value.Value
+            parent, err = evaluateAST(ast.Left.Right, scope)
+            if err != nil { return nil, err }
+        } else {
+            name = ast.Left.Value.Value
+        }
+
         block, err := evaluateAST(ast.Right, localScope)
         if err != nil { return nil, err }
 
         object := NewObject(TYPE_OBJECT, block, nil, localScope.Symbols)
+        object.Parent = parent
         scope.Symbols[name] = object
 
         return object, nil
