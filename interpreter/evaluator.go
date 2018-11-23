@@ -73,20 +73,20 @@ func (scope *Scope) SearchSymbol(name string) (*Object, *RuntimeError) {
     }
 
     if scope.Parent == nil {
-        return nil, NewRuntimeError("Symbol " + name + " not found.", nil)
+        return nil, NewRuntimeError("symbol " + name + " not found", nil)
     } else {
         return scope.Parent.SearchSymbol(name)
     }
 }
 
 func NewRuntimeError(msg string, token *Token) *RuntimeError {
-    fmt.Printf("Runtime error: %s, near %s", msg, token.Value)
+    fmt.Printf("Runtime error: %s, line %d\n", msg, token.Line)
     return &RuntimeError{msg, token}
 }
 
 func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError) {
     ast, err := GetNextAST(buffer)
-    if err != nil { return nil, NewRuntimeError("Syntax error.", nil)}
+    if err != nil { return nil, NewRuntimeError("syntax error", nil)}
 
     return evaluateAST(ast, scope)
 }
@@ -101,18 +101,18 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         number, _err := strconv.ParseInt(ast.Value.Value, 0, 64)
 
         if _err != nil {
-            return nil, NewRuntimeError("Cant convert " + ast.Value.Value + " to number type.", ast.Value)
+            return nil, NewRuntimeError("cant convert " + ast.Value.Value + " to number type", ast.Value)
         }
 
         object, err := NewNumberObject(number)
 		if err != nil {
-            return nil, NewRuntimeError("Cant convert " + ast.Value.Value + " to number type.", ast.Value)
+            return nil, NewRuntimeError("cant convert " + ast.Value.Value + " to number type", ast.Value)
         }
 
 		return object, nil
     } else if ast.Value.Type == FLOAT_NUMBER {
 		number, _err := strconv.ParseFloat(ast.Value.Value, 64)
-        if _err != nil { return nil, NewRuntimeError("Cant convert " + ast.Value.Value + " to float type.", ast.Value) }
+        if _err != nil { return nil, NewRuntimeError("cant convert " + ast.Value.Value + " to float type", ast.Value) }
 
         object, err := NewFloatObject(number)
 		if err != nil { return nil, err }
@@ -130,7 +130,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 				return object, nil
 			}
 		} else {
-            return nil, NewRuntimeError("Unknown error", ast.Value)
+            return nil, NewRuntimeError("unknown error", ast.Value)
 		}
     } else if ast.Value.Type == SPECIAL_LIST {
         var objectList [](*Object)
@@ -163,30 +163,26 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 		object, err := scope.SearchSymbol(ast.Value.Value)
         if err != nil { return nil, err }
 
-		if object != nil {
-			if ast.Left != nil && ast.Right != nil {
-				if callable, ok := object.Slots["__binary__"]; ok {
-					if form, ok :=callable.Slots["__form__"]; ok && form == TrueObject {
-						return callable.Value.(ObjectFormCallable)(
-							[](*AST){ ast.Left, ast.Right },
-							scope,
-                            ast,
-						)
-					} else {
-                        left, err := evaluateAST(ast.Left, scope)
-                        if err != nil { return nil, err }
-                        right, err := evaluateAST(ast.Right, scope)
-                        if err != nil { return nil, err }
+        if ast.Left != nil && ast.Right != nil {
+            if callable, ok := object.Slots["__binary__"]; ok {
+                if form, ok :=callable.Slots["__form__"]; ok && form == TrueObject {
+                    return callable.Value.(ObjectFormCallable)(
+                        [](*AST){ ast.Left, ast.Right },
+                        scope,
+                        ast,
+                    )
+                } else {
+                    left, err := evaluateAST(ast.Left, scope)
+                    if err != nil { return nil, err }
+                    right, err := evaluateAST(ast.Right, scope)
+                    if err != nil { return nil, err }
 
-						return callable.Value.(ObjectCallable)([](*Object){ left, right }, scope, ast)
-					}
-				}
-			} else if ast.Left == nil && ast.Right == nil {
-                return object, nil
+                    return callable.Value.(ObjectCallable)([](*Object){ left, right }, scope, ast)
+                }
             }
-		} else {
-			return nil, NewRuntimeError("Symbol '" + ast.Value.Value + "' not found.", ast.Value)
-		}
+        } else if ast.Left == nil && ast.Right == nil {
+            return object, nil
+        }
 	} else if ast.Value.Type == NEWLINE {
 		left, err := evaluateAST(ast.Left, scope)
         if err != nil { return nil, err }
@@ -267,13 +263,13 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             return callable.Value.(ObjectCallable)(arguments, scope, ast)
         }
 
-        return nil, NewRuntimeError(ast.Left.Value.Value + " is not callable.", ast.Value)
+        return nil, NewRuntimeError(ast.Left.Value.Value + " is not callable", ast.Value)
 	} else if ast.Value.Type == SPECIAL_INDEX {
         mapObject, err := evaluateAST(ast.Left, scope)
         if err != nil { return nil, err }
 
         if ast.Right.Right != nil {
-            return nil, NewRuntimeError("Index must be a single value.", ast.Value)
+            return nil, NewRuntimeError("index must be a single value", ast.Value)
         }
 
         indexObject, err := evaluateAST(ast.Right.Left, scope)
@@ -283,7 +279,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             callableObject := callable.Slots["__call__"].Value.(ObjectCallable)
             return callableObject([](*Object){ mapObject, indexObject }, scope, ast)
         } else {
-            return nil, NewRuntimeError("__index__ not found.", ast.Value)
+            return nil, NewRuntimeError("__index__ not found", ast.Value)
         }
 	} else if ast.Value.Type == SPECIAL_FOR {
         block := ast.Right
@@ -329,7 +325,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         }
     }
 
-    return nil, NewRuntimeError("Undefined syntax : " + ast.String() + ".", ast.Value)
+    return nil, NewRuntimeError("undefined syntax : " + ast.String(), ast.Value)
 }
 
 func evaluateASTMap(ast *AST, scope *Scope, objectMap MapObject) (MapObject, *RuntimeError) {

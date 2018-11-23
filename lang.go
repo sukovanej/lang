@@ -32,6 +32,6 @@ func main() {
 
         scope := i.NewScope(i.BuiltInScope)
         _, err := i.Evaluate(i.NewReaderWithPosition(file), scope)
-        if err != nil { panic(err) }
+        if err != nil { os.Exit(1) }
     }
 }

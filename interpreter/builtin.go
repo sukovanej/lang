@@ -74,7 +74,7 @@ func (object *Object) GetAttribute(name string, ast *AST) (*Object, *RuntimeErro
         nextObject = nextObject.Parent
     }
 
-    if !found { return nil, NewRuntimeError("Symbol " + name + " not found", ast.Value) }
+    if !found { return nil, NewRuntimeError("symbol " + name + " not found", ast.Value) }
 
     return result, nil
 }
@@ -167,7 +167,7 @@ func BuiltInDefineForm(input [](*AST), scope *Scope, ast *AST) (*Object, *Runtim
     } else if input[0].Left == nil && input[0].Right == nil {
         scope.Symbols[input[0].Value.Value] = value
     } else {
-        return nil, NewRuntimeError("LHS must be symbol or object property.", leftSide.Value)
+        return nil, NewRuntimeError("lhs must be symbol or object property", leftSide.Value)
     }
 
 	return value, nil
@@ -210,7 +210,7 @@ func BuiltInMeta(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeEr
 
 func BuiltInAssert(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     if input[0] == TrueObject {
-        return NilObject, NewRuntimeError("AssertError: value is false.", nil)
+        return NilObject, NewRuntimeError("AssertError", ast.Value)
     }
     return NilObject, nil
 }

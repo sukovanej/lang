@@ -28,12 +28,17 @@ func (reader *ReaderWithPosition) ReadRune() (rune, int, error) {
 }
 
 func (reader *ReaderWithPosition) UnreadRune() {
-    reader.Column--
+    if reader.Column == 0 {
+        reader.Line--
+    } else {
+        reader.Column--
+    }
+
     reader.Reader.UnreadRune()
 }
 
 func NewReaderWithPosition(rd io.Reader) *ReaderWithPosition {
-    return &ReaderWithPosition{*bufio.NewReader(rd), 0, 0}
+    return &ReaderWithPosition{*bufio.NewReader(rd), 1, 0}
 }
 
 const (
