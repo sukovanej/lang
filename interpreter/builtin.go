@@ -2,7 +2,6 @@ package interpreter
 
 import (
     "fmt"
-    "errors"
 )
 
 func createStringObject(value string) (*Object) {
@@ -36,13 +35,14 @@ func CopySlots(slots map[string](*Object)) map[string](*Object) {
     return newSlots
 }
 
-func BuiltInNewInstance(arguments [](*Object), scope *Scope) (*Object, error) {
+func BuiltInNewInstance(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     newArguments := CopyArguments(arguments)
 
     if initCallable, ok := newArguments[0].Slots["__init__"]; ok {
         initCallable.Slots["__call__"].Value.(ObjectCallable)(
             newArguments,
             scope,
+            ast,
         )
     }
 
@@ -54,14 +54,14 @@ var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) {
     "__call__": NewObject(TYPE_OBJECT, ObjectCallable(BuiltInNewInstance), nil, nil),
 }}
 
-func (object *Object) GetMetaObject() (*Object, error) {
+func (object *Object) GetMetaObject() *Object {
     if object.Meta == nil {
-        return MetaObject, nil
+        return MetaObject
     }
-    return object.Meta, nil
+    return object.Meta
 }
 
-func (object *Object) GetAttribute(name string) (*Object, error) {
+func (object *Object) GetAttribute(name string, ast *AST) (*Object, *RuntimeError) {
     var result *Object
     var found bool
 
@@ -74,7 +74,7 @@ func (object *Object) GetAttribute(name string) (*Object, error) {
         nextObject = nextObject.Parent
     }
 
-    if !found { return nil, errors.New("Symbol new found") }
+    if !found { return nil, NewRuntimeError("Symbol " + name + " not found", ast.Value) }
 
     return result, nil
 }
@@ -103,26 +103,26 @@ var TrueObject = NewObject(TYPE_BOOL, true, BoolMetaObject, map[string](*Object)
 var FalseObject = NewObject(TYPE_BOOL, false, BoolMetaObject, map[string](*Object) {})
 
 
-func BuiltInPlus(input [](*Object), scope *Scope) (*Object, error) {
-    return input[0].Slots["__plus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+func BuiltInPlus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].Slots["__plus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
 }
-func BuiltInMinus(input [](*Object), scope *Scope) (*Object, error) {
-    return input[0].Slots["__minus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+func BuiltInMinus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].Slots["__minus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
 }
-func BuiltInAsterisk(input [](*Object), scope *Scope) (*Object, error) {
-    return input[0].Slots["__asterisk__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+func BuiltInAsterisk(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].Slots["__asterisk__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
 }
-func BuiltInSlash(input [](*Object), scope *Scope) (*Object, error) {
-    return input[0].Slots["__slash__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+func BuiltInSlash(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].Slots["__slash__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
 }
-func BuiltInModulo(input [](*Object), scope *Scope) (*Object, error) {
-    return input[0].Slots["__modulo__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+func BuiltInModulo(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].Slots["__modulo__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
 }
-func BuiltInPower(input [](*Object), scope *Scope) (*Object, error) {
-    return input[0].Slots["__power__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+func BuiltInPower(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].Slots["__power__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
 }
-func BuiltInEqualCompare(input [](*Object), scope *Scope) (*Object, error) {
-    return input[0].Slots["__equal__"].Slots["__call__"].Value.(ObjectCallable)(input, scope)
+func BuiltInEqualCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].Slots["__equal__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
 }
 
 func NewBinaryOperatorObject(name string, callable ObjectCallable) (*Object) {
@@ -145,14 +145,14 @@ func NewCallable(callable ObjectCallable) (*Object) {
     })
 }
 
-func BuiltInDotForm(input [](*AST), scope *Scope) (*Object, error) {
+func BuiltInDotForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     object, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
-    return object.GetAttribute(input[1].Value.Value)
+    return object.GetAttribute(input[1].Value.Value, ast)
 }
 
-func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
+func BuiltInDefineForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     leftSide := input[0]
 
     value, err := evaluateAST(input[1], scope)
@@ -167,18 +167,18 @@ func BuiltInDefineForm(input [](*AST), scope *Scope) (*Object, error) {
     } else if input[0].Left == nil && input[0].Right == nil {
         scope.Symbols[input[0].Value.Value] = value
     } else {
-        return nil, errors.New("Runtime error: lhs must be symbol or object property")
+        return nil, NewRuntimeError("LHS must be symbol or object property.", leftSide.Value)
     }
 
 	return value, nil
 }
 
-func BuiltInPrint(input [](*Object), scope *Scope) (*Object, error) {
+func BuiltInPrint(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     for _, obj := range input {
-        strObject, err := obj.GetStringRepresentation(scope)
+        strObject, err := obj.GetStringRepresentation(scope, ast)
         if err != nil { return nil, err }
 
-        str, err := strObject.GetString()
+        str, err := strObject.GetString(ast)
         if err != nil { return nil, err }
 
         fmt.Println(str)
@@ -187,14 +187,14 @@ func BuiltInPrint(input [](*Object), scope *Scope) (*Object, error) {
 	return NilObject, nil
 }
 
-func BuiltInStr(input [](*Object), scope *Scope) (*Object, error) {
-    stringObject, err := input[0].GetStringRepresentation(scope)
+func BuiltInStr(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    stringObject, err := input[0].GetStringRepresentation(scope, ast)
     if err != nil { return nil, err }
 
 	return stringObject, nil
 }
 
-func BuiltInFunctionScope(input [](*Object), scope *Scope) (*Object, error) {
+func BuiltInFunctionScope(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     scopeList := make([](*Object), 0, len(scope.Symbols))
 
     for  _, value := range scope.Symbols {
@@ -204,20 +204,22 @@ func BuiltInFunctionScope(input [](*Object), scope *Scope) (*Object, error) {
 	return NewListObject(scopeList)
 }
 
-func BuiltInMeta(input [](*Object), scope *Scope) (*Object, error) {
-    meta, err := input[0].GetMetaObject()
-    if err != nil { return nil, err }
-    return meta, nil
+func BuiltInMeta(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return input[0].GetMetaObject(), nil
 }
 
-func BuiltInAssert(input [](*Object), scope *Scope) (*Object, error) {
+func BuiltInAssert(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     if input[0] == TrueObject {
-        return NilObject, errors.New("AssertError: value is false.")
+        return NilObject, NewRuntimeError("AssertError: value is false.", nil)
     }
     return NilObject, nil
 }
 
-func BuiltInIf(input [](*AST), scope *Scope) (*Object, error) {
+func BuiltInImport(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return nil, nil
+}
+
+func BuiltInIf(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     if input[1].Value.Value == "else" {
         cond, err := evaluateAST(input[1].Left, scope)
         if err != nil { return nil, err }
@@ -279,5 +281,6 @@ var BuiltInScope = &Scope{
         "scope": NewCallable(BuiltInFunctionScope),
         "str": NewCallable(BuiltInStr),
         "assert": NewCallable(BuiltInAssert),
+        "import": NewCallable(BuiltInImport),
     },
 }

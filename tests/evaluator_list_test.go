@@ -1,7 +1,6 @@
 package tests
 
 import (
-    "bufio"
 	_ "fmt"
     "strings"
     "testing"
@@ -10,7 +9,7 @@ import (
 )
 
 func TestEvaluateSimpleList(t *testing.T) {
-    obj, _ := Evaluate(bufio.NewReader(strings.NewReader("[1, 2, 3]")), BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("[1, 2, 3]")), BuiltInScope)
 	expected := &Object{Value: [](*Object){
         &Object{Value: int64(1), Type: TYPE_NUMBER},
         &Object{Value: int64(2), Type: TYPE_NUMBER},
@@ -21,7 +20,7 @@ func TestEvaluateSimpleList(t *testing.T) {
 }
 
 func TestEvaluateSimpleListWithTuple(t *testing.T) {
-    obj, _ := Evaluate(bufio.NewReader(strings.NewReader("[1, (2, 3), 3]")), BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("[1, (2, 3), 3]")), BuiltInScope)
 	expected := &Object{Value: [](*Object){
         &Object{Value: int64(1), Type: TYPE_NUMBER},
         &Object{Value: [](*Object){
@@ -35,14 +34,14 @@ func TestEvaluateSimpleListWithTuple(t *testing.T) {
 }
 
 func TestEvaluateListWIthSingleElement(t *testing.T) {
-    obj, _ := Evaluate(bufio.NewReader(strings.NewReader("[1]")), BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("[1]")), BuiltInScope)
 	expected := &Object{Value: [](*Object){ &Object{Value: int64(1), Type: TYPE_NUMBER}, }, Type: TYPE_LIST}
 
     if !compareObjects(obj, expected) { t.Errorf("%v \n!=\n %v.", obj, expected) }
 }
 
 func TestEvaluateListAddFunction(t *testing.T) {
-    obj, _ := Evaluate(bufio.NewReader(strings.NewReader(`
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         l = [1]
         l.add(2, 3)
     `)), BuiltInScope)
@@ -57,7 +56,7 @@ func TestEvaluateListAddFunction(t *testing.T) {
 }
 
 func TestEvaluateForStatement(t *testing.T) {
-    obj, _ := Evaluate(bufio.NewReader(strings.NewReader(`
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         l = [1]
         for x <- [2, 3] {
             l.add(x)
@@ -75,7 +74,7 @@ func TestEvaluateForStatement(t *testing.T) {
 }
 
 func TestEvaluateEmptyList(t *testing.T) {
-    obj, _ := Evaluate(bufio.NewReader(strings.NewReader(`
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         l = []
     `)), BuiltInScope)
 
@@ -85,7 +84,7 @@ func TestEvaluateEmptyList(t *testing.T) {
 }
 
 func TestEvaluateAddAfterAddCall(t *testing.T) {
-    obj, _ := Evaluate(bufio.NewReader(strings.NewReader(`
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         l = []
         l.add(1).add(2)
     `)), BuiltInScope)

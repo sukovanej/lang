@@ -1,12 +1,40 @@
 package interpreter
 
 import (
+    "io"
     "bufio"
     "bytes"
     _ "fmt"
     "unicode"
 )
 type TokenType int
+
+type ReaderWithPosition struct {
+    bufio.Reader
+    Line, Column uint
+}
+
+func (reader *ReaderWithPosition) ReadRune() (rune, int, error) {
+    r, s, p := reader.Reader.ReadRune()
+
+    if r == '\n' {
+        reader.Column = 0
+        reader.Line++
+    } else {
+        reader.Column++
+    }
+
+    return r, s, p
+}
+
+func (reader *ReaderWithPosition) UnreadRune() {
+    reader.Column--
+    reader.Reader.UnreadRune()
+}
+
+func NewReaderWithPosition(rd io.Reader) *ReaderWithPosition {
+    return &ReaderWithPosition{*bufio.NewReader(rd), 0, 0}
+}
 
 const (
     ERROR TokenType = iota
@@ -82,6 +110,12 @@ func (t *TokenType) String() string {
 type Token struct {
     Value string
     Type TokenType
+    Line uint
+    Column uint
+}
+
+func NewToken(value string, tokenType TokenType) *Token {
+    return &Token{value, tokenType, 0, 0}
 }
 
 func GetTokenType(c rune) TokenType {
@@ -106,20 +140,20 @@ func GetTokenType(c rune) TokenType {
 var specialFunctionCallNext = false
 var specialGetItem = false
 
-func GetNextToken(buffer *bufio.Reader) (*Token, error) {
+func GetNextToken(buffer *ReaderWithPosition) (*Token, error) {
     if specialFunctionCallNext {
         specialFunctionCallNext = false
-        return &Token{"", SPECIAL_FUNCTION_CALL}, nil
+        return &Token{"", SPECIAL_FUNCTION_CALL, buffer.Line, buffer.Column}, nil
     } else if specialGetItem {
         specialGetItem = false
-        return &Token{"", SPECIAL_INDEX}, nil
+        return &Token{"", SPECIAL_INDEX, buffer.Line, buffer.Column}, nil
     }
 
     var valueBuffer bytes.Buffer
 
     previousValue, _, err := buffer.ReadRune()
     if err != nil {
-        return &Token{"", EOF}, nil
+        return &Token{"", EOF, buffer.Line, buffer.Column}, nil
     }
     previousType := GetTokenType(previousValue)
 
@@ -150,7 +184,7 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
             previousValue, _, _ = buffer.ReadRune()
         }
 
-        return &Token{valueBuffer.String(), STRING}, nil
+        return &Token{valueBuffer.String(), STRING, buffer.Line, buffer.Column}, nil
     }
 
     valueBuffer.WriteRune(previousValue)
@@ -254,5 +288,5 @@ func GetNextToken(buffer *bufio.Reader) (*Token, error) {
         previousType = newType
     }
 
-    return &Token{valueBuffer.String(), previousType}, nil
+    return &Token{valueBuffer.String(), previousType, buffer.Line, buffer.Column}, nil
 }

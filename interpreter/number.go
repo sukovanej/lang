@@ -1,69 +1,68 @@
 package interpreter
 
 import (
-    "errors"
     "fmt"
 	"math"
 )
 
-func (o *Object) GetNumber() (int64, error) {
+func (o *Object) GetNumber(ast *AST) (int64, *RuntimeError) {
     if number, ok := o.Value.(int64); ok {
         return number, nil
     } else {
-        return 0, errors.New(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value))
+        return 0, NewRuntimeError(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value), nil)
     }
 }
 
-func BuiltInNumberPlus(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetNumber()
-    right_value, _ := arguments[1].GetNumber()
+func BuiltInNumberPlus(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
 
     return NewNumberObject(left_value + right_value)
 }
 
-func BuiltInNumberMinus(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetNumber()
-    right_value, _ := arguments[1].GetNumber()
+func BuiltInNumberMinus(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
 
     return NewNumberObject(left_value - right_value)
 }
-func BuiltInNumberAsterisk(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetNumber()
-    right_value, _ := arguments[1].GetNumber()
+func BuiltInNumberAsterisk(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
 
     return NewNumberObject(left_value * right_value)
 }
 
-func BuiltInNumberSlash(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetNumber()
-    right_value, _ := arguments[1].GetNumber()
+func BuiltInNumberSlash(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
 
     return NewNumberObject(left_value / right_value)
 }
 
-func BuiltInNumberModulo(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetNumber()
-    right_value, _ := arguments[1].GetNumber()
+func BuiltInNumberModulo(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
 
     return NewNumberObject(left_value % right_value)
 }
 
-func BuiltInNumberPower(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetNumber()
-    right_value, _ := arguments[1].GetNumber()
+func BuiltInNumberPower(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
 
     return NewFloatObject(math.Pow(float64(left_value), float64(right_value)))
 }
 
-func NumberObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
+func NumberObjectHash(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     return arguments[0], nil
 }
 
-func BuiltInNumberEqualCompare(arguments [](*Object), scope *Scope) (*Object, error) {
-    leftValue, err := arguments[0].GetNumber()
+func BuiltInNumberEqualCompare(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    leftValue, err := arguments[0].GetNumber(ast)
     if err != nil { return nil, err }
 
-    rightValue, err := arguments[1].GetNumber()
+    rightValue, err := arguments[1].GetNumber(ast)
     if err != nil { return nil, err }
 
     if leftValue == rightValue {
@@ -73,7 +72,7 @@ func BuiltInNumberEqualCompare(arguments [](*Object), scope *Scope) (*Object, er
     }
 }
 
-func NewNumberObject(value int64) (*Object, error) {
+func NewNumberObject(value int64) (*Object, *RuntimeError) {
     return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
         "__plus__": NewCallable(BuiltInNumberPlus),
         "__minus__": NewCallable(BuiltInNumberMinus),

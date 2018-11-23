@@ -1,27 +1,26 @@
 package interpreter
 
 import (
-    "errors"
     "fmt"
 )
 
-func (o *Object) GetTuple() ([](*Object), error) {
+func (o *Object) GetTuple(ast *AST) ([](*Object), *RuntimeError) {
     if tuple, ok := o.Value.([](*Object)); ok {
         return tuple, nil
     } else {
-        return nil, errors.New(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value))
+        return nil, NewRuntimeError(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value), ast.Value)
     }
 }
 
-func TupleObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
-    tuple, err := arguments[0].GetTuple()
+func TupleObjectString(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    tuple, err := arguments[0].GetTuple(ast)
     if err != nil { return nil, err }
 
     result := "("
     for _, item := range tuple {
-        stringReprObject, err := item.Slots["__string__"].Slots["__call__"].Value.(ObjectCallable)([](*Object){item}, scope)
+        stringReprObject, err := item.Slots["__string__"].Slots["__call__"].Value.(ObjectCallable)([](*Object){item}, scope, ast)
         if err != nil { return nil, err }
-        stringRepr, err := stringReprObject.GetString()
+        stringRepr, err := stringReprObject.GetString(ast)
         if err != nil { return nil, err }
         result += stringRepr + ", "
     }
@@ -31,7 +30,7 @@ func TupleObjectString(arguments [](*Object), scope *Scope) (*Object, error) {
     return NewStringObject(result)
 }
 
-func NewTupleObject(value [](*Object)) (*Object, error) {
+func NewTupleObject(value [](*Object)) (*Object, *RuntimeError) {
     return NewObject(TYPE_TUPLE, value, TupleMetaObject, map[string](*Object) {
         "__string__": NewCallable(TupleObjectString),
     }), nil

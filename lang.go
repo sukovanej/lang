@@ -17,26 +17,21 @@ func repl() {
         fmt.Print("lang> ")
         text, _ := reader.ReadString('\n')
 
-        obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(text)), scope)
-        _, err := i.BuiltInPrint([](*i.Object){ obj }, i.BuiltInScope)
-
-        if err != nil {
-            fmt.Printf("%s\n", err)
-        }
+        i.Evaluate(i.NewReaderWithPosition(strings.NewReader(text)), scope)
     }
 }
 
 func main() {
-    arg := os.Args[1]
-
-    if arg == "-r" {
+    if len(os.Args) == 1 {
         repl()
     } else {
-        file, err := os.Open(arg)
-        if err != nil { panic(err) }
+        arg := os.Args[1]
+
+        file, e := os.Open(arg)
+        if e != nil { panic(e) }
 
         scope := i.NewScope(i.BuiltInScope)
-        _, err = i.Evaluate(bufio.NewReader(file), scope)
+        _, err := i.Evaluate(i.NewReaderWithPosition(file), scope)
         if err != nil { panic(err) }
     }
 }

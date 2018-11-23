@@ -1,14 +1,13 @@
 package interpreter
 
 import (
-    "errors"
     "fmt"
     "strconv"
 )
 
-func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
+func (obj *Object) GetStringRepresentation(scope *Scope, ast *AST) (*Object, *RuntimeError) {
     stringObject := obj
-    var err error
+    var err *RuntimeError
     var ok bool
 
     if obj.Type == TYPE_STRING {
@@ -17,7 +16,7 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
 
     if stringObject, ok = obj.Slots["__string__"]; ok {
         if stringObject.Type != TYPE_STRING {
-            stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope)
+            stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope, ast)
             if err != nil { return nil, err }
         }
     } else if obj == NilObject {
@@ -27,12 +26,12 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
     } else if obj == FalseObject {
         stringObject, err = NewStringObject("false")
     } else if obj.Type == TYPE_NUMBER {
-        number, err := obj.GetNumber()
+        number, err := obj.GetNumber(ast)
         if err != nil { return nil, err }
         stringObject, err = NewStringObject(strconv.FormatInt(number, 10))
         if err != nil { return nil, err }
     } else if obj.Type == TYPE_FLOAT {
-        number, err := obj.GetFloat()
+        number, err := obj.GetFloat(ast)
         if err != nil { return nil, err }
         stringObject, err = NewStringObject(strconv.FormatFloat(number, 'E', -1, 10))
         if err != nil { return nil, err }
@@ -46,9 +45,9 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
         value := "<object"
 
         for key, object := range obj.Slots {
-            reprObject, err := object.GetStringRepresentation(scope)
+            reprObject, err := object.GetStringRepresentation(scope, ast)
             if err != nil { return nil, err }
-            repr, err := reprObject.GetString()
+            repr, err := reprObject.GetString(ast)
 
             value += " " + key + "=" + repr
         }
@@ -58,35 +57,35 @@ func (obj *Object) GetStringRepresentation(scope *Scope) (*Object, error) {
         stringObject, err = NewStringObject(value)
         if err != nil { return nil, err }
     } else {
-        panic("Runtime error: __string__ not found")
+        return nil, NewRuntimeError("__string__ not found", nil)
     }
 
     return stringObject, nil
 }
 
-func (o *Object) GetString() (string, error) {
+func (o *Object) GetString(ast *AST) (string, *RuntimeError) {
     if str, ok := o.Value.(string); ok {
         return str, nil
     } else {
-        return "", errors.New(fmt.Sprintf("Cant convert %v (%T) to string", o.Value, o.Value))
+        return "", NewRuntimeError(fmt.Sprintf("Cant convert %v (%T) to string", o.Value, o.Value), ast.Value)
     }
 }
 
-func BuiltInStringPlus(arguments [](*Object), scope *Scope) (*Object, error) {
-    leftValue, err := arguments[0].GetString()
+func BuiltInStringPlus(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    leftValue, err := arguments[0].GetString(ast)
     if err != nil { return nil, err }
 
-    rightValue, err := arguments[1].GetString()
+    rightValue, err := arguments[1].GetString(ast)
     if err != nil { return nil, err }
 
     return NewStringObject(leftValue + rightValue)
 }
 
-func BuiltInStringEqualCompare(arguments [](*Object), scope *Scope) (*Object, error) {
-    leftValue, err := arguments[0].GetString()
+func BuiltInStringEqualCompare(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    leftValue, err := arguments[0].GetString(ast)
     if err != nil { return nil, err }
 
-    rightValue, err := arguments[1].GetString()
+    rightValue, err := arguments[1].GetString(ast)
     if err != nil { return nil, err }
 
     if leftValue == rightValue {
@@ -96,15 +95,15 @@ func BuiltInStringEqualCompare(arguments [](*Object), scope *Scope) (*Object, er
     }
 }
 
-func StringObjectString(input [](*Object), scope *Scope) (*Object, error) {
+func StringObjectString(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     return input[0], nil
 }
 
-func StringObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
+func StringObjectHash(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     return arguments[0], nil
 }
 
-func NewStringObject(value string) (*Object, error) {
+func NewStringObject(value string) (*Object, *RuntimeError) {
     return NewObject(TYPE_STRING, value, StringMetaObject, map[string](*Object) {
         "__plus__": NewCallable(BuiltInStringPlus),
         "__equal__": NewCallable(BuiltInStringEqualCompare),

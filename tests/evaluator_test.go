@@ -1,92 +1,91 @@
 package tests
 
 import (
-    "bufio"
 	_ "fmt"
     "strings"
     "testing"
 
-    i "github.com/sukovanej/lang/interpreter"
+    . "github.com/sukovanej/lang/interpreter"
 )
 
 func TestEvaluateNumberExpression(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("4")), i.BuiltInScope)
-    expected := &i.Object{Value: int64(4), Type: i.TYPE_NUMBER}
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("4")), BuiltInScope)
+    expected := &Object{Value: int64(4), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateFloatExpression(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("3.2")), i.BuiltInScope)
-    expected := &i.Object{Value: float64(3.2), Type: i.TYPE_FLOAT}
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3.2")), BuiltInScope)
+    expected := &Object{Value: float64(3.2), Type: TYPE_FLOAT}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateSimplePlusExpression(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("3 + 3")), i.BuiltInScope)
-    expected := &i.Object{Value: int64(6), Type: i.TYPE_NUMBER}
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3 + 3")), BuiltInScope)
+    expected := &Object{Value: int64(6), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateMultipleOperators(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("1+2*3 - 3")), i.BuiltInScope)
-    expected := &i.Object{Value: int64(4), Type: i.TYPE_NUMBER}
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 3")), BuiltInScope)
+    expected := &Object{Value: int64(4), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateMultipleOperatorsWithParentheses(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("1+2*3 - 2*(3 + 2)")), i.BuiltInScope)
-    expected := &i.Object{Value: int64(-3), Type: i.TYPE_NUMBER}
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 2*(3 + 2)")), BuiltInScope)
+    expected := &Object{Value: int64(-3), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateSlashOperatorWithParentheses(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("9 / (1 + 2)")), i.BuiltInScope)
-    expected := &i.Object{Value: int64(3), Type: i.TYPE_NUMBER}
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 / (1 + 2)")), BuiltInScope)
+    expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluatePowerOperatorWithParentheses(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("9 ^ 2")), i.BuiltInScope)
-    expected := &i.Object{Value: float64(81), Type: i.TYPE_FLOAT}
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 ^ 2")), BuiltInScope)
+    expected := &Object{Value: float64(81), Type: TYPE_FLOAT}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateDefineSimple(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`x = 1 + 2`)), i.BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`x = 1 + 2`)), BuiltInScope)
 
-	expected := &i.Object{Value: int64(3), Type: i.TYPE_NUMBER}
-    if !compareObjects(i.BuiltInScope.Symbols["x"], expected) {
+	expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
+    if !compareObjects(BuiltInScope.Symbols["x"], expected) {
 		t.Errorf("%v != %v.", obj, expected)
 	}
 }
 
 func TestEvaluateDefineTwoVariables(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
 x = 1 + 2
 y = x * 3 
-`)), i.BuiltInScope)
+`)), BuiltInScope)
 
-	expected := &i.Object{Value: int64(3), Type: i.TYPE_NUMBER}
-    if !compareObjects(i.BuiltInScope.Symbols["x"], expected) {
+	expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
+    if !compareObjects(BuiltInScope.Symbols["x"], expected) {
 		t.Errorf("%v != %v.", obj, expected)
 	}
 
-	expected = &i.Object{Value: int64(9), Type: i.TYPE_NUMBER}
-    if !compareObjects(i.BuiltInScope.Symbols["y"], expected) {
+	expected = &Object{Value: int64(9), Type: TYPE_NUMBER}
+    if !compareObjects(BuiltInScope.Symbols["y"], expected) {
 		t.Errorf("%v != %v.", obj, expected)
 	}
 }
 
 func TestEvaluateDotOperator(t *testing.T) {
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("object.__string__")), i.BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("object.__string__")), BuiltInScope)
 
-	expected := &i.Object{Value: "<type object>", Type: i.TYPE_STRING}
+	expected := &Object{Value: "<type object>", Type: TYPE_STRING}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateTypeDefinitionWithFunction(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type MyType {
             my_var = 12
 
@@ -96,7 +95,7 @@ func TestEvaluateTypeDefinitionWithFunction(t *testing.T) {
         }
     `)), scope)
 
-    expectedMyVar := &i.Object{Value: int64(12), Type: i.TYPE_NUMBER}
+    expectedMyVar := &Object{Value: int64(12), Type: TYPE_NUMBER}
     if !compareObjects(scope.Symbols["MyType"].Slots["my_var"], expectedMyVar) {
         t.Errorf("%v != %v.", obj, expectedMyVar)
     }
@@ -107,8 +106,8 @@ func TestEvaluateTypeDefinitionWithFunction(t *testing.T) {
 }
 
 func TestEvaluateTypeDefinitionWithSlotCall(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type MyType {
             my_var = 12
         }
@@ -116,19 +115,19 @@ func TestEvaluateTypeDefinitionWithSlotCall(t *testing.T) {
         MyType.my_var
     `)), scope)
 
-    expected := &i.Object{Value: int64(12), Type: i.TYPE_NUMBER}
+    expected := &Object{Value: int64(12), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) {
         t.Errorf("%v != %v.", obj, expected)
     }
 }
 
 func TestEvaluateScopeFunction(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         scope()
     `)), scope)
 
-    list, err := obj.GetList()
+    list, err := obj.GetList(nil)
 
     if list == nil || err != nil {
         t.Errorf("%v is not list", list)
@@ -136,10 +135,10 @@ func TestEvaluateScopeFunction(t *testing.T) {
 }
 
 func TestEvaluateMapTwoItems(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`{1: 2, "str": 12.4}`)), scope)
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`{1: 2, "str": 12.4}`)), scope)
 
-    mapObject, err := obj.GetMap()
+    mapObject, err := obj.GetMap(nil)
 
     if mapObject == nil || err != nil {
         t.Errorf("%v is not list", mapObject)
@@ -147,10 +146,10 @@ func TestEvaluateMapTwoItems(t *testing.T) {
 }
 
 func TestEvaluateMap2(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader("{1: 2, \"str\": 12.4, 1.2: \"test\"}")), scope)
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("{1: 2, \"str\": 12.4, 1.2: \"test\"}")), scope)
 
-    mapObject, err := obj.GetMap()
+    mapObject, err := obj.GetMap(nil)
 
     if mapObject == nil || err != nil {
         t.Errorf("%v is not list", mapObject)
@@ -158,34 +157,34 @@ func TestEvaluateMap2(t *testing.T) {
 }
 
 func TestEvaluateMapWithIndex(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         d = {1: 2}
         d[1]
     `)), scope)
 
-    expected := &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}
+    expected := &Object{Value: int64(2), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) {
         t.Errorf("%v != %v.", obj, expected)
     }
 }
 
 func TestEvaluateListWithIndex(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         l = [1, 2]
         l[0]
     `)), scope)
 
-    expected := &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}
+    expected := &Object{Value: int64(1), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) {
         t.Errorf("%v != %v.", obj, expected)
     }
 }
 
 func TestEvaluateNewInstanceWithoutInit(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    Evaluate(NewReaderWithPosition(strings.NewReader(`
         type X {
             var = 1
         }
@@ -194,18 +193,18 @@ func TestEvaluateNewInstanceWithoutInit(t *testing.T) {
         x.var = 2
     `)), scope)
 
-    if !compareObjects(scope.Symbols["x"].Slots["var"], &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(scope.Symbols["x"].Slots["var"], &Object{Value: int64(2), Type: TYPE_NUMBER}) {
         t.Errorf("%v", scope.Symbols["x"])
     }
 
-    if !compareObjects(scope.Symbols["X"].Slots["var"], &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(scope.Symbols["X"].Slots["var"], &Object{Value: int64(1), Type: TYPE_NUMBER}) {
         t.Errorf("%v", scope.Symbols["X"].Slots["var"])
     }
 }
 
 func TestEvaluateNewInstanceWithInit(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type X {
             var = 1
 
@@ -217,14 +216,14 @@ func TestEvaluateNewInstanceWithInit(t *testing.T) {
         x = X(2)
     `)), scope)
 
-    if !compareObjects(obj.Slots["x"], &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj.Slots["x"], &Object{Value: int64(2), Type: TYPE_NUMBER}) {
         t.Errorf("%v", scope.Symbols["x"])
     }
 }
 
 func TestEvaluateVecImplementation(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type Vec {
             __init__(self, x, y, z) -> {
                 self.x = x
@@ -236,22 +235,22 @@ func TestEvaluateVecImplementation(t *testing.T) {
         vec_1 = Vec(1, 2, 3)
     `)), scope)
 
-    if !compareObjects(obj.Slots["x"], &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj.Slots["x"], &Object{Value: int64(1), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj.Slots["x"])
     }
 
-    if !compareObjects(obj.Slots["y"], &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj.Slots["y"], &Object{Value: int64(2), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj.Slots["y"])
     }
 
-    if !compareObjects(obj.Slots["z"], &i.Object{Value: int64(3), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj.Slots["z"], &Object{Value: int64(3), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj.Slots["z"])
     }
 }
 
 func TestEvaluateVecImplementationWithAnotherFunction(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type Vec {
             __init__(self, x, y, z) -> {
                 self.x = x
@@ -266,114 +265,114 @@ func TestEvaluateVecImplementationWithAnotherFunction(t *testing.T) {
         vec_1.f()
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: int64(6), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj, &Object{Value: int64(6), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateStrFunction(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         str(10)
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: "10", Type: i.TYPE_STRING}) {
+    if !compareObjects(obj, &Object{Value: "10", Type: TYPE_STRING}) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateStrFunctionWithPlus(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         str(1) + str(0)
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: "10", Type: i.TYPE_STRING}) {
+    if !compareObjects(obj, &Object{Value: "10", Type: TYPE_STRING}) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateStrFunctionWithPlusInPrintFunction(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         print(str(1) + str(0))
     `)), scope)
 
-    if !compareObjects(obj, i.NilObject) {
+    if !compareObjects(obj, NilObject) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateAnonymousFunction(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         eval_fn(fn, arg) -> fn(arg)
         eval_fn((x) -> 2 * x, 1)
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: int64(2), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj, &Object{Value: int64(2), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateStringCompare(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         "test" == "test"
     `)), scope)
 
-    if !compareObjects(obj, i.TrueObject) {
+    if !compareObjects(obj, TrueObject) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateNumberCompare(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1 == 1
     `)), scope)
 
-    if !compareObjects(obj, i.TrueObject) {
+    if !compareObjects(obj, TrueObject) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateFloatCompare(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1.2 == 1.2
     `)), scope)
 
-    if !compareObjects(obj, i.TrueObject) {
+    if !compareObjects(obj, TrueObject) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateIfElseExpression(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1 if 2 == 3 else 4
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: int64(4), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj, &Object{Value: int64(4), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateIfElseExpression2(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1 if 2 == 2 else 4
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj, &Object{Value: int64(1), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateInheritance(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type A {
             x = 1
         }
@@ -385,19 +384,19 @@ func TestEvaluateInheritance(t *testing.T) {
         B.x
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: int64(1), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj, &Object{Value: int64(1), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj)
     }
 }
 
 func TestEvaluateFactorial(t *testing.T) {
-    scope := i.NewScope(i.BuiltInScope)
-    obj, _ := i.Evaluate(bufio.NewReader(strings.NewReader(`
+    scope := NewScope(BuiltInScope)
+    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         fact(n) -> 2 if n == 2 else n * fact(n - 1)
         fact(4)
     `)), scope)
 
-    if !compareObjects(obj, &i.Object{Value: int64(24), Type: i.TYPE_NUMBER}) {
+    if !compareObjects(obj, &Object{Value: int64(24), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj)
     }
 }

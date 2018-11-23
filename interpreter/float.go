@@ -1,64 +1,63 @@
 package interpreter
 
 import (
-    "errors"
     "fmt"
     "math"
 )
 
-func (o *Object) GetFloat() (float64, error) {
+func (o *Object) GetFloat(ast *AST) (float64, *RuntimeError) {
     if number, ok := o.Value.(float64); ok {
         return number, nil
     } else if number, ok := o.Value.(int64); ok {
         return float64(number), nil
     } else {
-        return 0, errors.New(fmt.Sprintf("Cant convert %q to number", o.Value))
+        return 0, NewRuntimeError(fmt.Sprintf("Cant convert %q to number", o.Value), ast.Value)
     }
 }
 
-func BuiltInFloatPlus(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetFloat()
-    right_value, _ := arguments[1].GetFloat()
+func BuiltInFloatPlus(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetFloat(ast)
+    right_value, _ := arguments[1].GetFloat(ast)
 
     return NewFloatObject(left_value + right_value)
 }
 
-func BuiltInFloatMinus(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetFloat()
-    right_value, _ := arguments[1].GetFloat()
+func BuiltInFloatMinus(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetFloat(ast)
+    right_value, _ := arguments[1].GetFloat(ast)
 
     return NewFloatObject(left_value - right_value)
 }
-func BuiltInFloatAsterisk(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetFloat()
-    right_value, _ := arguments[1].GetFloat()
+func BuiltInFloatAsterisk(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetFloat(ast)
+    right_value, _ := arguments[1].GetFloat(ast)
 
     return NewFloatObject(left_value * right_value)
 }
 
-func BuiltInFloatSlash(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetFloat()
-    right_value, _ := arguments[1].GetFloat()
+func BuiltInFloatSlash(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetFloat(ast)
+    right_value, _ := arguments[1].GetFloat(ast)
 
     return NewFloatObject(left_value / right_value)
 }
 
-func BuiltInFloatPower(arguments [](*Object), scope *Scope) (*Object, error) {
-    left_value, _ := arguments[0].GetFloat()
-    right_value, _ := arguments[1].GetFloat()
+func BuiltInFloatPower(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetFloat(ast)
+    right_value, _ := arguments[1].GetFloat(ast)
 
     return NewFloatObject(math.Pow(float64(left_value), float64(right_value)))
 }
 
-func FloatObjectHash(arguments [](*Object), scope *Scope) (*Object, error) {
+func FloatObjectHash(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     return arguments[0], nil
 }
 
-func BuiltInFloatEqualCompare(arguments [](*Object), scope *Scope) (*Object, error) {
-    leftValue, err := arguments[0].GetFloat()
+func BuiltInFloatEqualCompare(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    leftValue, err := arguments[0].GetFloat(ast)
     if err != nil { return nil, err }
 
-    rightValue, err := arguments[1].GetFloat()
+    rightValue, err := arguments[1].GetFloat(ast)
     if err != nil { return nil, err }
 
     if leftValue == rightValue {
@@ -68,7 +67,7 @@ func BuiltInFloatEqualCompare(arguments [](*Object), scope *Scope) (*Object, err
     }
 }
 
-func NewFloatObject(value float64) (*Object, error) {
+func NewFloatObject(value float64) (*Object, *RuntimeError) {
     return NewObject(TYPE_FLOAT, value, FloatMetaObject, map[string](*Object) {
         "__plus__": NewCallable(BuiltInFloatPlus),
         "__minus__": NewCallable(BuiltInFloatMinus),

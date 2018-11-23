@@ -1,7 +1,6 @@
 package interpreter
 
 import (
-    "bufio"
     "fmt"
     "github.com/golang-collections/collections/stack"
 )
@@ -93,7 +92,7 @@ func precedence(leftValue, rightValue interface{}) bool {
     return GetWeight(left) >= GetWeight(right)
 }
 
-func removeTrailingWhitespaces(buffer *bufio.Reader) {
+func removeTrailingWhitespaces(buffer *ReaderWithPosition) {
 	val, _, err := buffer.ReadRune()
 
 	for err == nil && val == '\n' {
@@ -124,7 +123,7 @@ func GetAST(value interface{}) *AST {
     panic("value is not Token or AST")
 }
 
-func GetNextAST(buffer *bufio.Reader) (*AST, error) {
+func GetNextAST(buffer *ReaderWithPosition) (*AST, error) {
 	removeTrailingWhitespaces(buffer)
     result, err := getNextAST(buffer, nil)
 
@@ -135,7 +134,7 @@ func GetNextAST(buffer *bufio.Reader) (*AST, error) {
     return result, err
 }
 
-func getNextAST(buffer *bufio.Reader, stopOnToken *Token) (*AST, error) {
+func getNextAST(buffer *ReaderWithPosition, stopOnToken *Token) (*AST, error) {
     operatorStack := stack.New()
     expressionStack := stack.New()
 
