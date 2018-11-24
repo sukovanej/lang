@@ -1,27 +1,39 @@
 package main
 
 import (
-    "bufio"
-    "fmt"
     "strings"
     "os"
 
     i "github.com/sukovanej/lang/interpreter"
+
+    "github.com/c-bata/go-prompt"
 )
 
+func completer(d prompt.Document) []prompt.Suggest {
+	s := []prompt.Suggest{
+		{Text: "print", Description: "send text to stdout"},
+	}
+	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+}
+
 func repl(scope *i.Scope) {
-    reader := bufio.NewReader(os.Stdin)
+    p := prompt.New(
+		func(text string) {
+            if text == "" { return }
 
-    for {
-        fmt.Print("lang> ")
-        text, _ := reader.ReadString('\n')
+            obj, err := i.Evaluate(i.NewReaderWithPosition(strings.NewReader(text)), scope)
 
-        obj, err := i.Evaluate(i.NewReaderWithPosition(strings.NewReader(text)), scope)
-
-        if err == nil && obj != nil {
-            i.BuiltInPrint([](*i.Object){ obj }, i.BuiltInScope, nil)
-        }
-    }
+            if err == nil && obj != nil {
+                i.BuiltInPrint([](*i.Object){ obj }, i.BuiltInScope, nil)
+            }
+            return
+        },
+        func(t prompt.Document) []prompt.Suggest {
+            return []prompt.Suggest{}
+        },
+        prompt.OptionPrefix(">>> "),
+	)
+	p.Run()
 }
 
 func runCode(scope *i.Scope, filename string) (*i.Object, *i.RuntimeError) {

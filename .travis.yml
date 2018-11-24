@@ -32,4 +32,5 @@ notifications:
 # .golangci.yml file at the top level of your repo.
 script:
   - go get github.com/golang-collections/collections/stack
+  - go get github.com/c-bata/go-prompt
   - go test -v -race ./...  # Run all the tests with the race detector enabled
