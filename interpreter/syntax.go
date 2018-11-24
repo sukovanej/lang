@@ -29,7 +29,7 @@ func (a *AST) String() string {
 var BuiltInWeights map[string]uint = map[string]uint{
     "\n": 0,
     "=": 20,
-    // FOR, TYPE : 30
+    // FOR, TYPE, COND : 30
     "<-": 40,
     ",": 50,
     // TUPLE : 60
@@ -56,6 +56,7 @@ func GetWeight(value *Token) uint {
     case SPECIAL_TUPLE: return 60
     case SPECIAL_FOR: return 30
     case SPECIAL_TYPE: return 30
+    case SPECIAL_COND: return 30
     case SPECIAL_INDEX: return 120
     default:
         if w, ok := BuiltInWeights[value.Value]; ok {
@@ -214,6 +215,11 @@ func getNextAST(buffer *ReaderWithPosition, stopOnToken *Token) (*AST, error) {
                 expressionStack.Push(typeName)
                 operatorStack.Push(&Token{Type: SPECIAL_TYPE})
                 operatorStack.Push(bracketToken)
+            } else if token.Value == "cond" {
+                expressionStack.Push(nil)
+                operatorStack.Push(&Token{Type: SPECIAL_COND})
+
+                waitingForOperator = false
             } else if token.Value == "for" {
                 bracketToken := &Token{Value: "{", Type: BRACKET_LEFT}
                 statement, err := getNextAST(buffer, bracketToken)

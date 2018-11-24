@@ -423,7 +423,6 @@ func TestEvaluateAndAndStatement(t *testing.T) {
     }
 }
 
-
 func TestEvaluateOrAndAndStatement(t *testing.T) {
     scope := NewScope(BuiltInScope)
     obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
@@ -431,6 +430,48 @@ func TestEvaluateOrAndAndStatement(t *testing.T) {
     `)), scope)
 
     if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateCondStatement(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        cond {
+            0 == 1: 0
+            1 == 1: 1
+        }
+    `)), scope)
+
+    if !compareObjects(obj, &Object{Value: int64(1), Type: TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateCondStatementWithNilResult(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        cond {
+            0 == 1: 0
+            1 == 0: 1
+        }
+    `)), scope)
+
+    if !compareObjects(obj, NilObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateCondStatemen2(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        cond {
+            1 == 1 and (1 == 0 or 0 == 0): 0
+            1 == 0: 1
+        }
+    `)), scope)
+
+    if !compareObjects(obj, &Object{Value: int64(0), Type: TYPE_NUMBER}) {
         t.Errorf("%v", obj)
     }
 }

@@ -74,6 +74,7 @@ const (
     SPECIAL_NO_ARGUMENTS
     SPECIAL_INDEX
     SPECIAL_FOR
+    SPECIAL_COND
 )
 
 func (t *Token) String() string {
@@ -107,6 +108,7 @@ func (t *TokenType) String() string {
         case SPECIAL_NO_ARGUMENTS: return "SPECIAL_NO_ARGUMENTS"
         case SPECIAL_INDEX: return "SPECIAL_INDEX"
         case SPECIAL_FOR: return "SPECIAL_FOR"
+        case SPECIAL_COND: return "SPECIAL_COND"
     }
 
     return "???"

@@ -284,6 +284,11 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         } else {
             return nil, NewRuntimeError("__index__ not found", ast.Value)
         }
+	} else if ast.Value.Type == SPECIAL_COND {
+        if ast.Left != nil { return nil, NewRuntimeError("syntax error: cond shouldn't have lhs", ast.Value) }
+        if ast.Right.Value.Type != SPECIAL_BLOCK { return nil, NewRuntimeError("syntax error: { expected", ast.Value) }
+
+        return CondBlock(ast.Right.Left, scope)
 	} else if ast.Value.Type == SPECIAL_FOR {
         block := ast.Right
         listObject, err := evaluateAST(ast.Left.Right, scope)
@@ -424,4 +429,28 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, *RuntimeError)
     }
 
     return function, nil
+}
+
+func CondBlock(ast *AST, scope *Scope) (*Object, *RuntimeError) {
+    cond, err := evaluateAST(ast.Left.Left, scope)
+    if err != nil { return nil, err }
+
+    if cond == TrueObject {
+        return evaluateAST(ast.Left.Right, scope)
+    } else if cond == FalseObject {
+        if ast.Right.Value.Type == NEWLINE {
+            return CondBlock(ast.Right, scope)
+        } else if ast.Right.Value.Type == SIGN && ast.Right.Value.Value == ":" {
+            cond, err := evaluateAST(ast.Right.Left, scope)
+            if err != nil { return nil, err }
+
+            if cond == TrueObject {
+                return evaluateAST(ast.Right.Right, scope)
+            } else {
+                return NilObject, nil
+            }
+        }
+    }
+
+    return nil, NewRuntimeError("condition must be bool", ast.Value)
 }
