@@ -1127,3 +1127,51 @@ func TestGetNextASTInheritance(t *testing.T) {
 
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
+
+func TestGetNextASTIndexAfterFunctionCall(t *testing.T) {
+    inputBuffer := NewReaderWithPosition(strings.NewReader(`
+        slots(x)[y]
+    `))
+
+    ast, _ := GetNextAST(inputBuffer)
+    expected := &AST{
+        Left: &AST{
+            Left: &AST{Value: NewToken("slots", IDENTIFIER)},
+            Right: &AST{Value: NewToken("x", IDENTIFIER)},
+            Value: NewToken("", SPECIAL_FUNCTION_CALL),
+        },
+		Right: &AST{
+            Left: &AST{Value: NewToken("y", IDENTIFIER)},
+            Value: NewToken("", SPECIAL_LIST),
+        },
+        Value: NewToken("", SPECIAL_INDEX),
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
+func TestGetNextASTFunctionCallAfterIndexAfterFunctionCall(t *testing.T) {
+    inputBuffer := NewReaderWithPosition(strings.NewReader(`
+        slots(x)[y](z)
+    `))
+
+    ast, _ := GetNextAST(inputBuffer)
+    expected := &AST{
+        Left: &AST{
+            Left: &AST{
+                Left: &AST{Value: NewToken("slots", IDENTIFIER)},
+                Right: &AST{Value: NewToken("x", IDENTIFIER)},
+                Value: NewToken("", SPECIAL_FUNCTION_CALL),
+            },
+            Right: &AST{
+                Left: &AST{Value: NewToken("y", IDENTIFIER)},
+                Value: NewToken("", SPECIAL_LIST),
+            },
+            Value: NewToken("", SPECIAL_INDEX),
+        },
+        Right: &AST{Value: NewToken("z", IDENTIFIER)},
+        Value: NewToken("", SPECIAL_FUNCTION_CALL),
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}

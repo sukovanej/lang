@@ -232,6 +232,12 @@ func GetNextToken(buffer *ReaderWithPosition) (*Token, error) {
                 break Loop
             }
         case BRACKET_RIGHT:
+            if newValue == '(' {
+                specialFunctionCallNext = true
+            } else if newValue == '[' {
+                specialGetItem = true
+            }
+
             if newType != GAP {
                 buffer.UnreadRune()
             }

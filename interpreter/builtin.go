@@ -286,6 +286,22 @@ func BuiltInIf(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) 
     }
 }
 
+func BuiltInSlots(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    scopeMap := make(MapObject)
+
+    for name, valueObject := range input[0].Slots {
+        keyObject, err := NewStringObject(name)
+        if err != nil { return nil, err }
+
+        hash, err := keyObject.GetHash(scope, ast)
+        if err != nil { return nil, err }
+
+        scopeMap[hash] = [2](*Object) { keyObject, valueObject }
+    }
+
+	return NewMapObject(scopeMap)
+}
+
 func GenerateImportPath() *Object {
     cwd, _ := filepath.Abs(filepath.Dir(os.Args[0]))
     cwdString, _ := NewStringObject(cwd)
@@ -330,6 +346,7 @@ var BuiltInScope = &Scope{
         "str": NewCallable(BuiltInStr),
         "assert": NewCallable(BuiltInAssert),
         "import": NewCallable(BuiltInImport),
+        "slots": NewCallable(BuiltInSlots),
 
         "IMPORT_PATH": GenerateImportPath(),
     },

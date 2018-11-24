@@ -864,3 +864,43 @@ func TestGetNextTokenNameWithNumber(t *testing.T) {
     expected = NewToken("1", NUMBER)
     if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
 }
+
+func TestGetNextTokenSimpleGetItemAfterBracket(t *testing.T) {
+    inputBuffer := NewReaderWithPosition(strings.NewReader(`x(y)[z]`))
+
+    token, _ := GetNextToken(inputBuffer)
+    expected := NewToken("x", IDENTIFIER)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("", SPECIAL_FUNCTION_CALL)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("(", BRACKET_LEFT)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("y", IDENTIFIER)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken(")", BRACKET_RIGHT)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("", SPECIAL_INDEX)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("[", BRACKET_LEFT)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("z", IDENTIFIER)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("]", BRACKET_RIGHT)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+}
