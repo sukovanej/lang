@@ -50,13 +50,17 @@ func BuiltInNewInstance(arguments [](*Object), scope *Scope, ast *AST) (*Object,
     }
 
     newArguments[0].Type = TYPE_OBJECT
+    newArguments[0].Meta = arguments[0]
 
     return newArguments[0], nil
 }
 
 var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) {
-    "__string__": createStringObject("<type object>"),
+    "__string__": createStringObject("<object>"),
     "__call__": NewObject(TYPE_OBJECT, ObjectCallable(BuiltInNewInstance), nil, nil),
+    "__equal__": NewCallable(func (input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+        return NewBoolObject(input[0] == input[1])
+    }),
 }}
 
 func (object *Object) GetMetaObject() *Object {
@@ -107,27 +111,82 @@ var NilObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__strin
 var TrueObject = NewObject(TYPE_BOOL, true, BoolMetaObject, map[string](*Object) {})
 var FalseObject = NewObject(TYPE_BOOL, false, BoolMetaObject, map[string](*Object) {})
 
+func (object *Object) GetSlot(name string, ast *AST) (*Object, *RuntimeError) {
+    current := object
+
+    for {
+        if slot, ok := current.Slots[name]; ok {
+            return slot, nil
+        } else if current == MetaObject && current.GetMetaObject() == MetaObject {
+            return nil, NewRuntimeError(name + " not found", ast.Value)
+        }
+
+        current = object.GetMetaObject()
+    }
+}
 
 func BuiltInPlus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return input[0].Slots["__plus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
+    operatorSlot, err := input[0].GetSlot("__plus__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
 }
 func BuiltInMinus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return input[0].Slots["__minus__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
+    operatorSlot, err := input[0].GetSlot("__minus__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
 }
 func BuiltInAsterisk(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return input[0].Slots["__asterisk__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
+    operatorSlot, err := input[0].GetSlot("__asterisk__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
 }
 func BuiltInSlash(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return input[0].Slots["__slash__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
+    operatorSlot, err := input[0].GetSlot("__slash__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
 }
 func BuiltInModulo(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return input[0].Slots["__modulo__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
+    operatorSlot, err := input[0].GetSlot("__modulo__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
 }
 func BuiltInPower(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return input[0].Slots["__power__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
+    operatorSlot, err := input[0].GetSlot("__power__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
 }
 func BuiltInEqualCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return input[0].Slots["__equal__"].Slots["__call__"].Value.(ObjectCallable)(input, scope, ast)
+    operatorSlot, err := input[0].GetSlot("__equal__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
 }
 
 func NewBinaryOperatorObject(name string, callable ObjectCallable) (*Object) {

@@ -15,7 +15,7 @@ func (obj *Object) GetStringRepresentation(scope *Scope, ast *AST) (*Object, *Ru
     }
 
     if obj.Type == TYPE_META {
-        stringObject, err = NewStringObject(fmt.Sprintf("<metaobject %s> @ %p", ast.Value.Value, obj))
+        stringObject, err = NewStringObject(fmt.Sprintf("<metaobject> @ %p", obj))
     } else if stringObject, ok = obj.Slots["__string__"]; ok {
         if stringObject.Type != TYPE_STRING {
             stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope, ast)

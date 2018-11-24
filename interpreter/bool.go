@@ -11,3 +11,11 @@ func (o *Object) GetBool(ast *AST) (bool, *RuntimeError) {
         return false, NewRuntimeError(fmt.Sprintf("Cant convert %v (%T) to bool", o.Value, o.Value), ast.Value)
     }
 }
+
+func NewBoolObject(value bool) (*Object, *RuntimeError) {
+    if value {
+        return TrueObject, nil
+    } else {
+        return FalseObject, nil
+    }
+}
