@@ -361,6 +361,34 @@ func BuiltInSlots(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeE
 	return NewMapObject(scopeMap)
 }
 
+func BuiltInAndForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    lhs, err := evaluateAST(input[0], scope)
+    if err != nil { return nil, err }
+
+    if lhs == FalseObject {
+        return lhs, nil
+    }
+
+    rhs, err := evaluateAST(input[1], scope)
+    if err != nil { return nil, err }
+
+    return rhs, nil
+}
+
+func BuiltInOrForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    lhs, err := evaluateAST(input[0], scope)
+    if err != nil { return nil, err }
+
+    if lhs == TrueObject {
+        return lhs, nil
+    }
+
+    rhs, err := evaluateAST(input[1], scope)
+    if err != nil { return nil, err }
+
+    return rhs, nil
+}
+
 func GenerateImportPath() *Object {
     cwd, _ := filepath.Abs(filepath.Dir(os.Args[0]))
     cwdString, _ := NewStringObject(cwd)
@@ -398,6 +426,9 @@ var BuiltInScope = &Scope{
         "true": TrueObject,
         "false": FalseObject,
         "nil": NilObject,
+
+        "and": NewBinaryFormObject("and", BuiltInAndForm),
+        "or": NewBinaryFormObject("or", BuiltInOrForm),
 
         "meta": NewCallable(BuiltInMeta),
         "print": NewCallable(BuiltInPrint),

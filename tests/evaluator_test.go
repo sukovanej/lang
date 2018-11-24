@@ -400,3 +400,37 @@ func TestEvaluateFactorial(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateAndStatement(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        true and true
+    `)), scope)
+
+    if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateAndAndStatement(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        true and true and false
+    `)), scope)
+
+    if !compareObjects(obj, FalseObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+
+func TestEvaluateOrAndAndStatement(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        true or true and false
+    `)), scope)
+
+    if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
