@@ -3,6 +3,7 @@ package interpreter
 import (
     "fmt"
     "os"
+    "path"
     "path/filepath"
 )
 
@@ -218,7 +219,33 @@ func BuiltInAssert(input [](*Object), scope *Scope, ast *AST) (*Object, *Runtime
 }
 
 func BuiltInImport(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    return nil, nil
+    importPathListObject, err := scope.SearchSymbol("IMPORT_PATH", ast)
+    if err != nil { return nil, err }
+
+    importPathList, err := importPathListObject.GetList(ast)
+    if err != nil { return nil, err }
+
+    modulePath, err := input[0].GetString(ast)
+    if err != nil { return nil, err }
+
+    for _, importPathObject := range importPathList {
+        importPath, err := importPathObject.GetString(ast)
+        if err != nil { return nil, err }
+
+        moduleFullPath := path.Join(importPath, modulePath + ".lang")
+
+        if _, err := os.Stat(moduleFullPath); !os.IsNotExist(err) {
+            moduleScope := NewScope(scope)
+            file, e := os.Open(moduleFullPath)
+            if e != nil { return nil, NewRuntimeError("unknown import error", ast.Value) }
+
+            Evaluate(NewReaderWithPosition(file), moduleScope)
+
+            return NewObject(TYPE_OBJECT, nil, nil, moduleScope.Symbols), nil
+        }
+    }
+
+    return nil, NewRuntimeError("can't import module " + modulePath, ast.Value)
 }
 
 func BuiltInIf(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
@@ -294,6 +321,7 @@ var BuiltInScope = &Scope{
         "scope": NewCallable(BuiltInFunctionScope),
         "str": NewCallable(BuiltInStr),
         "assert": NewCallable(BuiltInAssert),
+        "import": NewCallable(BuiltInImport),
 
         "IMPORT_PATH": GenerateImportPath(),
     },
