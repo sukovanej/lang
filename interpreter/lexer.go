@@ -18,7 +18,7 @@ func (reader *ReaderWithPosition) ReadRune() (rune, int, error) {
     r, s, p := reader.Reader.ReadRune()
 
     if r == '\n' {
-        reader.Column = 0
+        reader.Column = 1
         reader.Line++
     } else {
         reader.Column++
@@ -28,7 +28,7 @@ func (reader *ReaderWithPosition) ReadRune() (rune, int, error) {
 }
 
 func (reader *ReaderWithPosition) UnreadRune() {
-    if reader.Column == 0 {
+    if reader.Column == 1 {
         reader.Line--
     } else {
         reader.Column--
@@ -38,7 +38,7 @@ func (reader *ReaderWithPosition) UnreadRune() {
 }
 
 func NewReaderWithPosition(rd io.Reader) *ReaderWithPosition {
-    return &ReaderWithPosition{*bufio.NewReader(rd), 1, 0}
+    return &ReaderWithPosition{*bufio.NewReader(rd), 1, 1}
 }
 
 const (

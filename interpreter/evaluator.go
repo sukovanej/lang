@@ -80,7 +80,7 @@ func (scope *Scope) SearchSymbol(name string, ast *AST) (*Object, *RuntimeError)
 }
 
 func NewRuntimeError(msg string, token *Token) *RuntimeError {
-    fmt.Printf("Runtime error: %s, line %d\n", msg, token.Line)
+    fmt.Printf("Runtime error: %s, line %d, column %d\n", msg, token.Line, token.Column)
     return &RuntimeError{msg, token}
 }
 
