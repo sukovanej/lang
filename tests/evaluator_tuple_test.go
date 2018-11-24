@@ -63,7 +63,7 @@ func compareObjects(o1, o2 *Object) bool {
 }
 
 func TestEvaluateTuple(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1, 2, 3)")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1, 2, 3)")), BuiltInScope)
     expected := &Object{
         Value: [](*Object){
             &Object{Value: int64(1), Type: TYPE_NUMBER},
@@ -79,7 +79,7 @@ func TestEvaluateTuple(t *testing.T) {
 }
 
 func TestEvaluateTupleWithPlus(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1, 1 + 1)")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1, 1 + 1)")), BuiltInScope)
     expected := &Object{
         Value: [](*Object){
             &Object{Value: int64(1), Type: TYPE_NUMBER},
@@ -94,7 +94,7 @@ func TestEvaluateTupleWithPlus(t *testing.T) {
 }
 
 func TestEvaluateTupleWithPlusPlus(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1, 1 + 1, 1 + 1 + 1)")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1, 1 + 1, 1 + 1 + 1)")), BuiltInScope)
     expected := &Object{
         Value: [](*Object){
             &Object{Value: int64(1), Type: TYPE_NUMBER},
@@ -110,7 +110,7 @@ func TestEvaluateTupleWithPlusPlus(t *testing.T) {
 }
 
 func TestEvaluateTupleWithPlusPlusFirstPosition(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1 + 1, 1, 1 + 1 + 1)")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("(1 + 1, 1, 1 + 1 + 1)")), BuiltInScope)
     expected := &Object{
         Value: [](*Object){
             &Object{Value: int64(2), Type: TYPE_NUMBER},
@@ -126,7 +126,7 @@ func TestEvaluateTupleWithPlusPlusFirstPosition(t *testing.T) {
 }
 
 func TestEvaluateTupleInTuple(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("((1, 1), 1)")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("((1, 1), 1)")), BuiltInScope)
     expected := &Object{
         Value: [](*Object){
             &Object{
@@ -147,7 +147,7 @@ func TestEvaluateTupleInTuple(t *testing.T) {
 }
 
 func TestEvaluateTupleInTupleMultiple(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("((1, 1), (1, 1))")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("((1, 1), (1, 1))")), BuiltInScope)
     expected := &Object{
         Value: [](*Object){
             &Object{

@@ -9,49 +9,49 @@ import (
 )
 
 func TestEvaluateNumberExpression(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("4")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("4")), BuiltInScope)
     expected := &Object{Value: int64(4), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateFloatExpression(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3.2")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3.2")), BuiltInScope)
     expected := &Object{Value: float64(3.2), Type: TYPE_FLOAT}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateSimplePlusExpression(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3 + 3")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3 + 3")), BuiltInScope)
     expected := &Object{Value: int64(6), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateMultipleOperators(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 3")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 3")), BuiltInScope)
     expected := &Object{Value: int64(4), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateMultipleOperatorsWithParentheses(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 2*(3 + 2)")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 2*(3 + 2)")), BuiltInScope)
     expected := &Object{Value: int64(-3), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateSlashOperatorWithParentheses(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 / (1 + 2)")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 / (1 + 2)")), BuiltInScope)
     expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluatePowerOperatorWithParentheses(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 ^ 2")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 ^ 2")), BuiltInScope)
     expected := &Object{Value: float64(81), Type: TYPE_FLOAT}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateDefineSimple(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`x = 1 + 2`)), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`x = 1 + 2`)), BuiltInScope)
 
 	expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
     if !compareObjects(BuiltInScope.Symbols["x"], expected) {
@@ -60,7 +60,7 @@ func TestEvaluateDefineSimple(t *testing.T) {
 }
 
 func TestEvaluateDefineTwoVariables(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
 x = 1 + 2
 y = x * 3 
 `)), BuiltInScope)
@@ -77,15 +77,15 @@ y = x * 3
 }
 
 func TestEvaluateDotOperator(t *testing.T) {
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("object.__string__")), BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("object.__string__")), BuiltInScope)
 
-	expected := &Object{Value: "<type object>", Type: TYPE_STRING}
+	expected := &Object{Value: "<object>", Type: TYPE_STRING}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateTypeDefinitionWithFunction(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type MyType {
             my_var = 12
 
@@ -107,7 +107,7 @@ func TestEvaluateTypeDefinitionWithFunction(t *testing.T) {
 
 func TestEvaluateTypeDefinitionWithSlotCall(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type MyType {
             my_var = 12
         }
@@ -123,7 +123,7 @@ func TestEvaluateTypeDefinitionWithSlotCall(t *testing.T) {
 
 func TestEvaluateScopeFunction(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         scope()
     `)), scope)
 
@@ -136,7 +136,7 @@ func TestEvaluateScopeFunction(t *testing.T) {
 
 func TestEvaluateMapTwoItems(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`{1: 2, "str": 12.4}`)), scope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`{1: 2, "str": 12.4}`)), scope)
 
     mapObject, err := obj.GetMap(nil)
 
@@ -147,7 +147,7 @@ func TestEvaluateMapTwoItems(t *testing.T) {
 
 func TestEvaluateMap2(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader("{1: 2, \"str\": 12.4, 1.2: \"test\"}")), scope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("{1: 2, \"str\": 12.4, 1.2: \"test\"}")), scope)
 
     mapObject, err := obj.GetMap(nil)
 
@@ -158,7 +158,7 @@ func TestEvaluateMap2(t *testing.T) {
 
 func TestEvaluateMapWithIndex(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         d = {1: 2}
         d[1]
     `)), scope)
@@ -171,7 +171,7 @@ func TestEvaluateMapWithIndex(t *testing.T) {
 
 func TestEvaluateListWithIndex(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         l = [1, 2]
         l[0]
     `)), scope)
@@ -204,7 +204,7 @@ func TestEvaluateNewInstanceWithoutInit(t *testing.T) {
 
 func TestEvaluateNewInstanceWithInit(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type X {
             var = 1
 
@@ -223,7 +223,7 @@ func TestEvaluateNewInstanceWithInit(t *testing.T) {
 
 func TestEvaluateVecImplementation(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type Vec {
             __init__(self, x, y, z) -> {
                 self.x = x
@@ -250,7 +250,7 @@ func TestEvaluateVecImplementation(t *testing.T) {
 
 func TestEvaluateVecImplementationWithAnotherFunction(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type Vec {
             __init__(self, x, y, z) -> {
                 self.x = x
@@ -272,7 +272,7 @@ func TestEvaluateVecImplementationWithAnotherFunction(t *testing.T) {
 
 func TestEvaluateStrFunction(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         str(10)
     `)), scope)
 
@@ -283,7 +283,7 @@ func TestEvaluateStrFunction(t *testing.T) {
 
 func TestEvaluateStrFunctionWithPlus(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         str(1) + str(0)
     `)), scope)
 
@@ -294,7 +294,7 @@ func TestEvaluateStrFunctionWithPlus(t *testing.T) {
 
 func TestEvaluateStrFunctionWithPlusInPrintFunction(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         print(str(1) + str(0))
     `)), scope)
 
@@ -305,7 +305,7 @@ func TestEvaluateStrFunctionWithPlusInPrintFunction(t *testing.T) {
 
 func TestEvaluateAnonymousFunction(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         eval_fn(fn, arg) -> fn(arg)
         eval_fn((x) -> 2 * x, 1)
     `)), scope)
@@ -317,7 +317,7 @@ func TestEvaluateAnonymousFunction(t *testing.T) {
 
 func TestEvaluateStringCompare(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         "test" == "test"
     `)), scope)
 
@@ -328,7 +328,7 @@ func TestEvaluateStringCompare(t *testing.T) {
 
 func TestEvaluateNumberCompare(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1 == 1
     `)), scope)
 
@@ -339,7 +339,7 @@ func TestEvaluateNumberCompare(t *testing.T) {
 
 func TestEvaluateFloatCompare(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1.2 == 1.2
     `)), scope)
 
@@ -350,7 +350,7 @@ func TestEvaluateFloatCompare(t *testing.T) {
 
 func TestEvaluateIfElseExpression(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1 if 2 == 3 else 4
     `)), scope)
 
@@ -361,7 +361,7 @@ func TestEvaluateIfElseExpression(t *testing.T) {
 
 func TestEvaluateIfElseExpression2(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         1 if 2 == 2 else 4
     `)), scope)
 
@@ -372,7 +372,7 @@ func TestEvaluateIfElseExpression2(t *testing.T) {
 
 func TestEvaluateInheritance(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         type A {
             x = 1
         }
@@ -391,7 +391,7 @@ func TestEvaluateInheritance(t *testing.T) {
 
 func TestEvaluateFactorial(t *testing.T) {
     scope := NewScope(BuiltInScope)
-    obj, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         fact(n) -> 2 if n == 2 else n * fact(n - 1)
         fact(4)
     `)), scope)
