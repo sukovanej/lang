@@ -220,7 +220,7 @@ func BuiltInMeta(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeEr
 }
 
 func BuiltInAssert(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    if input[0] == TrueObject {
+    if input[0] != TrueObject {
         return NilObject, NewRuntimeError("AssertError", ast.Value)
     }
     return NilObject, nil
