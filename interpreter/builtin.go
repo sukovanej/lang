@@ -416,7 +416,7 @@ var BuiltInScope = &Scope{
         //"else": NewBinaryFormObject("else", BuiltInElse),
 
         "object": MetaObject,
-        "num": NumberMetaObject,
+        "number": NumberMetaObject,
         "float": FloatMetaObject,
         "string": StringMetaObject,
         "list": ListMetaObject,
