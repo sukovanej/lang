@@ -86,11 +86,13 @@ func NewRuntimeError(msg string, token *Token) *RuntimeError {
     return &RuntimeError{msg, token}
 }
 
-func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError) {
+func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError, *AST) {
     ast, err := GetNextAST(buffer)
-    if err != nil { return nil, NewRuntimeError("syntax error", nil)}
+    if err != nil { return nil, NewRuntimeError("syntax error", nil), ast }
 
-    return evaluateAST(ast, scope)
+    obj, runtimeErr := evaluateAST(ast, scope)
+
+    return obj, runtimeErr, ast
 }
 
 func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {

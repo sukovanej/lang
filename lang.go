@@ -21,10 +21,10 @@ func repl(scope *i.Scope) {
 		func(text string) {
             if text == "" { return }
 
-            obj, err := i.Evaluate(i.NewReaderWithPosition(strings.NewReader(text)), scope)
+            obj, err, ast := i.Evaluate(i.NewReaderWithPosition(strings.NewReader(text)), scope)
 
             if err == nil && obj != nil {
-                i.BuiltInPrint([](*i.Object){ obj }, i.BuiltInScope, nil)
+                i.BuiltInPrint([](*i.Object){ obj }, i.BuiltInScope, ast)
             }
             return
         },
@@ -36,7 +36,7 @@ func repl(scope *i.Scope) {
 	p.Run()
 }
 
-func runCode(scope *i.Scope, filename string) (*i.Object, *i.RuntimeError) {
+func runCode(scope *i.Scope, filename string) (*i.Object, *i.RuntimeError, *i.AST) {
     file, e := os.Open(filename)
     if e != nil { panic(e) }
 
@@ -51,7 +51,7 @@ func main() {
         runCode(scope, os.Args[2])
         repl(scope)
     } else if len(os.Args) == 2 {
-        _, err := runCode(i.NewScope(i.BuiltInScope), os.Args[1])
+        _, err, _ := runCode(i.NewScope(i.BuiltInScope), os.Args[1])
         if err != nil {
             os.Exit(1)
         }

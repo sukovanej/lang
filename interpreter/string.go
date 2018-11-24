@@ -15,7 +15,7 @@ func (obj *Object) GetStringRepresentation(scope *Scope, ast *AST) (*Object, *Ru
     }
 
     if obj.Type == TYPE_META {
-        stringObject, err = NewStringObject("<metaobject>")
+        stringObject, err = NewStringObject(fmt.Sprintf("<metaobject %s> @ %p", ast.Value.Value, obj))
     } else if stringObject, ok = obj.Slots["__string__"]; ok {
         if stringObject.Type != TYPE_STRING {
             stringObject, err = stringObject.Slots["__call__"].Value.(ObjectCallable)([](*Object){ obj }, scope, ast)
@@ -38,7 +38,7 @@ func (obj *Object) GetStringRepresentation(scope *Scope, ast *AST) (*Object, *Ru
         stringObject, err = NewStringObject(strconv.FormatFloat(number, 'E', -1, 10))
         if err != nil { return nil, err }
     } else if obj == BoolMetaObject {
-        stringObject, err = NewStringObject("<type bool>")
+        stringObject, err = NewStringObject("<bool>")
         if err != nil { return nil, err }
     } else if obj.Type == TYPE_CALLABLE {
         stringObject, err = NewStringObject(fmt.Sprintf("<callable> @ %p", obj))
