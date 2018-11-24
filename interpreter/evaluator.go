@@ -60,22 +60,22 @@ func NewScope(parent *Scope) *Scope {
 }
 
 type RuntimeError struct {
-    message string
-    token *Token
+    Message string
+    Token *Token
 }
 
 type ObjectCallable func([](*Object), *Scope, *AST)(*Object, *RuntimeError)
 type ObjectFormCallable func([](*AST), *Scope, *AST)(*Object, *RuntimeError)
 
-func (scope *Scope) SearchSymbol(name string) (*Object, *RuntimeError) {
+func (scope *Scope) SearchSymbol(name string, ast *AST) (*Object, *RuntimeError) {
     if val, ok := scope.Symbols[name]; ok {
         return val, nil
     }
 
     if scope.Parent == nil {
-        return nil, NewRuntimeError("symbol " + name + " not found", nil)
+        return nil, NewRuntimeError("symbol " + name + " not found", ast.Value)
     } else {
-        return scope.Parent.SearchSymbol(name)
+        return scope.Parent.SearchSymbol(name, ast)
     }
 }
 
@@ -119,9 +119,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 
 		return object, nil
     } else if ast.Value.Type == IDENTIFIER && ast.Left == nil && ast.Right == nil {
-		object, err := scope.SearchSymbol(ast.Value.Value)
+		object, err := scope.SearchSymbol(ast.Value.Value, ast)
         if err != nil {
-            err.token = ast.Value
             return nil, err
         }
 
@@ -160,7 +159,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 	} else if ast.Value.Type == SIGN && ast.Value.Value == "->" {
         return CreateFunction(ast.Left, ast.Right, scope)
 	} else if ast.Value.Type == SIGN || ast.Value.Type == IDENTIFIER {
-		object, err := scope.SearchSymbol(ast.Value.Value)
+		object, err := scope.SearchSymbol(ast.Value.Value, ast)
         if err != nil { return nil, err }
 
         if ast.Left != nil && ast.Right != nil {

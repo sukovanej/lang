@@ -2,6 +2,8 @@ package interpreter
 
 import (
     "fmt"
+    "os"
+    "path/filepath"
 )
 
 func createStringObject(value string) (*Object) {
@@ -249,6 +251,17 @@ func BuiltInIf(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) 
     }
 }
 
+func GenerateImportPath() *Object {
+    cwd, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+    cwdString, _ := NewStringObject(cwd)
+
+    importPath, _ := NewListObject([](*Object){
+        cwdString,
+    })
+
+    return importPath
+}
+
 var BuiltInScope = &Scope{
     Symbols: map[string](*Object){
         "+": NewBinaryOperatorObject("+", BuiltInPlus),
@@ -281,6 +294,7 @@ var BuiltInScope = &Scope{
         "scope": NewCallable(BuiltInFunctionScope),
         "str": NewCallable(BuiltInStr),
         "assert": NewCallable(BuiltInAssert),
-        "import": NewCallable(BuiltInImport),
+
+        "IMPORT_PATH": GenerateImportPath(),
     },
 }
