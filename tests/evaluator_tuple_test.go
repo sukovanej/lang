@@ -39,7 +39,7 @@ func compareObjects(o1, o2 *Object) bool {
         }
 
 		return o1.Type == o2.Type
-	} else if o1.Type == TYPE_OBJECT {
+	} else if o1.Type == TYPE_OBJECT || o1.Type == TYPE_META {
 		return o1 == o2 && o1.Type == o2.Type
 	} else if o1.Type == TYPE_FLOAT {
 		n1, _ := o1.GetFloat(nil)

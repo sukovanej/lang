@@ -10,6 +10,7 @@ type ObjectType int
 const (
     TYPE_OBJECT ObjectType = iota
 
+    TYPE_META
     TYPE_NUMBER
     TYPE_FLOAT
     TYPE_BOOL
@@ -33,6 +34,7 @@ func (o ObjectType) String() string {
     case TYPE_TUPLE: str = "TYPE_TUPLE"
     case TYPE_CALLABLE: str = "TYPE_CALLABLE"
     case TYPE_OBJECT: str = "TYPE_OBJECT"
+    case TYPE_META: str = "TYPE_META"
     }
 
     return str
@@ -209,7 +211,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         block, err := evaluateAST(ast.Right, localScope)
         if err != nil { return nil, err }
 
-        object := NewObject(TYPE_OBJECT, block, nil, localScope.Symbols)
+        object := NewObject(TYPE_META, block, nil, localScope.Symbols)
         object.Parent = parent
         scope.Symbols[name] = object
 
@@ -230,7 +232,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             if err != nil { return nil, err }
         }
 
-        if callableObject.Type == TYPE_OBJECT {
+        if callableObject.Type == TYPE_OBJECT || callableObject.Type == TYPE_META {
             meta := callableObject.GetMetaObject()
             argumentsTuple = append(argumentsTuple, callableObject)
             callableObject = meta

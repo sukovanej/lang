@@ -127,10 +127,10 @@ func TestEvaluateScopeFunction(t *testing.T) {
         scope()
     `)), scope)
 
-    list, err := obj.GetList(nil)
+    scopeMap, err := obj.GetMap(nil)
 
-    if list == nil || err != nil {
-        t.Errorf("%v is not list", list)
+    if scopeMap == nil || err != nil {
+        t.Errorf("%v is not list", scopeMap)
     }
 }
 

@@ -41,7 +41,7 @@ func MapObjectString(arguments [](*Object), scope *Scope, ast *AST) (*Object, *R
         valueStr, err := valueStrObject.GetString(ast)
         if err != nil { return nil, err }
 
-        result += keyStr + ":" + valueStr + ", "
+        result += keyStr + ": " + valueStr + ", "
     }
 
     if len(mapObject) > 0 {

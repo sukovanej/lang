@@ -49,6 +49,8 @@ func BuiltInNewInstance(arguments [](*Object), scope *Scope, ast *AST) (*Object,
         )
     }
 
+    newArguments[0].Type = TYPE_OBJECT
+
     return newArguments[0], nil
 }
 
@@ -198,13 +200,19 @@ func BuiltInStr(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeErr
 }
 
 func BuiltInFunctionScope(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    scopeList := make([](*Object), 0, len(scope.Symbols))
+    scopeMap := make(MapObject)
 
-    for  _, value := range scope.Symbols {
-       scopeList = append(scopeList, value)
+    for name, valueObject := range scope.Symbols {
+        keyObject, err := NewStringObject(name)
+        if err != nil { return nil, err }
+
+        hash, err := keyObject.GetHash(scope, ast)
+        if err != nil { return nil, err }
+
+        scopeMap[hash] = [2](*Object) { keyObject, valueObject }
     }
 
-	return NewListObject(scopeList)
+	return NewMapObject(scopeMap)
 }
 
 func BuiltInMeta(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
