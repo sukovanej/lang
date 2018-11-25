@@ -86,6 +86,10 @@ func NewRuntimeError(msg string, token *Token) *RuntimeError {
     return &RuntimeError{msg, token}
 }
 
+func NewRuntimeErrorTraceback(token *Token) {
+    fmt.Printf("    \u001b[31;1mTraceback\u001b[0m: near %s line \u001b[32m%d\u001b[0m, column \u001b[32m%d\u001b[0m\n", token.Value, token.Line, token.Column)
+}
+
 func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError, *AST) {
     ast, err := GetNextAST(buffer)
     if err != nil { return nil, NewRuntimeError("syntax error", nil), ast }
@@ -98,7 +102,7 @@ func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError,
 func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
     if ast.Value.Type == STRING {
         object, err := NewStringObject(ast.Value.Value)
-		if err != nil { panic(err) }
+		if err != nil { return nil, NewRuntimeError("not a string", ast.Value) }
 
 		return object, nil
     } else if ast.Value.Type == NUMBER {
@@ -119,12 +123,16 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         if _err != nil { return nil, NewRuntimeError("cant convert \u001b[33;1m" + ast.Value.Value + "\u001b[0m to float type", ast.Value) }
 
         object, err := NewFloatObject(number)
-		if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
 		return object, nil
     } else if ast.Value.Type == IDENTIFIER && ast.Left == nil && ast.Right == nil {
 		object, err := scope.SearchSymbol(ast.Value.Value, ast)
         if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
             return nil, err
         }
 
@@ -141,12 +149,18 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 
         if ast.Left != nil {
             objectList, err = evaluateASTTuple(ast.Left, scope, objectList)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         }
 
         if ast.Right != nil {
             objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         }
 
         return NewListObject(objectList)
@@ -154,17 +168,26 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         var objectList [](*Object)
 
         objectList, err := evaluateASTTuple(ast.Left, scope, objectList)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         return NewTupleObject(objectList)
 	} else if ast.Value.Type == SIGN && ast.Value.Value == "->" {
         return CreateFunction(ast.Left, ast.Right, scope)
 	} else if ast.Value.Type == SIGN || ast.Value.Type == IDENTIFIER {
 		object, err := scope.SearchSymbol(ast.Value.Value, ast)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         if ast.Left != nil && ast.Right != nil {
             if callable, ok := object.Slots["__binary__"]; ok {
@@ -176,9 +199,15 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
                     )
                 } else {
                     left, err := evaluateAST(ast.Left, scope)
-                    if err != nil { return nil, err }
+                    if err != nil {
+                        NewRuntimeErrorTraceback(ast.Value)
+                        return nil, err
+                    }
                     right, err := evaluateAST(ast.Right, scope)
-                    if err != nil { return nil, err }
+                    if err != nil {
+                        NewRuntimeErrorTraceback(ast.Value)
+                        return nil, err
+                    }
 
                     return callable.Value.(ObjectCallable)([](*Object){ left, right }, scope, ast)
                 }
@@ -188,7 +217,10 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         }
 	} else if ast.Value.Type == NEWLINE {
 		left, err := evaluateAST(ast.Left, scope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
 		if ast.Right == nil {
 			return left, nil
@@ -205,13 +237,19 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         if ast.Left.Value.Value == ":" {
             name = ast.Left.Left.Value.Value
             parent, err = evaluateAST(ast.Left.Right, scope)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         } else {
             name = ast.Left.Value.Value
         }
 
         block, err := evaluateAST(ast.Right, localScope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         object := NewObject(TYPE_META, block, nil, localScope.Symbols)
         object.Parent = parent
@@ -226,12 +264,18 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 
         if ast.Left.Value.Type == SIGN && ast.Left.Value.Value == "." {
             selfObject, err := evaluateAST(ast.Left.Left, scope)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
             argumentsTuple = append(argumentsTuple, selfObject)
             callableObject = selfObject.Slots[ast.Left.Right.Value.Value]
         } else {
             callableObject, err = evaluateAST(ast.Left, scope)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         }
 
         if callableObject.Type == TYPE_OBJECT || callableObject.Type == TYPE_META {
@@ -244,24 +288,39 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 
         if ast.Right.Value.Type != SPECIAL_NO_ARGUMENTS {
             argumentsObject, err = evaluateAST(ast.Right, scope)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         }
 
         if argumentsObject == nil {
             argumentsObject, err = NewTupleObject(argumentsTuple)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         } else if argumentsObject.Type != TYPE_TUPLE {
             argumentsObject, err = NewTupleObject(append(argumentsTuple, argumentsObject))
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         } else {
             arguments, _ := argumentsObject.GetTuple(ast)
             argumentsObject, err = NewTupleObject(append(argumentsTuple, arguments...))
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
         }
 
         if callable, ok := callableObject.Slots["__call__"]; ok {
             arguments, err := argumentsObject.GetTuple(ast)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
 
             return callable.Value.(ObjectCallable)(arguments, scope, ast)
         }
@@ -269,14 +328,20 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         return nil, NewRuntimeError("\u001b[33;1m" + ast.Left.Value.Value + "\u001b[0m is not callable", ast.Value)
 	} else if ast.Value.Type == SPECIAL_INDEX {
         mapObject, err := evaluateAST(ast.Left, scope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         if ast.Right.Right != nil {
             return nil, NewRuntimeError("index must be a single value", ast.Value)
         }
 
         indexObject, err := evaluateAST(ast.Right.Left, scope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         if callable, ok := mapObject.Slots["__index__"]; ok {
             callableObject := callable.Slots["__call__"].Value.(ObjectCallable)
@@ -293,7 +358,10 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 	} else if ast.Value.Type == SPECIAL_FOR {
         block := ast.Right
         listObject, err := evaluateAST(ast.Left.Right, scope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         symbol := ast.Left.Left.Value.Value
 
@@ -302,14 +370,20 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 
         if listObject.Type == TYPE_LIST {
             forInput, err := listObject.GetList(ast)
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
 
             var last *Object = NilObject
 
             for _, item := range forInput {
                 forScope.Symbols[symbol] = item
                 last, err = evaluateAST(block, forScope)
-                if err != nil { return nil, err }
+                if err != nil {
+                    NewRuntimeErrorTraceback(ast.Value)
+                    return nil, err
+                }
             }
 
             return last, nil
@@ -321,11 +395,17 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             objectMap := make(MapObject)
             objectMap, err := evaluateASTMap(ast.Left, scope, objectMap)
 
-            if err != nil { return nil, err }
+            if err != nil {
+                NewRuntimeErrorTraceback(ast.Value)
+                return nil, err
+            }
 
             if ast.Right != nil {
                 objectMap, err = evaluateASTMap(ast.Right, scope, objectMap)
-                if err != nil { return nil, err }
+                if err != nil {
+                    NewRuntimeErrorTraceback(ast.Value)
+                    return nil, err
+                }
             }
 
             return NewMapObject(objectMap)
@@ -340,21 +420,36 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 func evaluateASTMap(ast *AST, scope *Scope, objectMap MapObject) (MapObject, *RuntimeError) {
     if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == "," {
         objectMap, err := evaluateASTMap(ast.Left, scope, objectMap)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         objectMap, err = evaluateASTMap(ast.Right, scope, objectMap)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         return objectMap, nil
     } else if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == ":" {
         objectKey, err := evaluateAST(ast.Left, scope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         objectValue, err := evaluateAST(ast.Right, scope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         hash, err := objectKey.GetHash(scope, ast)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         objectMap[hash] = [2](*Object) { objectKey, objectValue }
         return objectMap, nil
@@ -369,15 +464,24 @@ func evaluateASTMap(ast *AST, scope *Scope, objectMap MapObject) (MapObject, *Ru
 func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Object), *RuntimeError) {
     if ast != nil && ast.Value.Type == SIGN && ast.Value.Value == "," {
         objectList, err := evaluateASTTuple(ast.Left, scope, objectList)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         objectList, err = evaluateASTTuple(ast.Right, scope, objectList)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         return objectList, nil
     } else {
         object, err := evaluateAST(ast, scope)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
         objectList = append(objectList, object)
         return objectList, nil
     }
@@ -386,10 +490,16 @@ func evaluateASTTuple(ast *AST, scope *Scope, objectList [](*Object)) ([](*Objec
 func getFormalArguments(ast *AST, argsList []string) ([]string, *RuntimeError) {
     if ast != nil && (ast.Value.Type == SIGN || ast.Value.Type == SPECIAL_TUPLE) && ast.Value.Value == "," {
         argsList, err := getFormalArguments(ast.Left, argsList)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         argsList, err = getFormalArguments(ast.Right, argsList)
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         return argsList, nil
     } else {
@@ -416,7 +526,10 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, *RuntimeError)
     function := NewCallable(func (arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
         localScope := NewScope(scope)
         argumentNames, err := getFormalArguments(formalArguments, []string{})
-        if err != nil { return nil, err }
+        if err != nil {
+            NewRuntimeErrorTraceback(ast.Value)
+            return nil, err
+        }
 
         for i, arg := range argumentNames {
             localScope.Symbols[arg] = arguments[i]

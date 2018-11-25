@@ -248,8 +248,9 @@ func BuiltInPrint(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeE
         str, err := strObject.GetString(ast)
         if err != nil { return nil, err }
 
-        fmt.Println(str)
+        fmt.Print(str, " ")
     }
+    fmt.Println()
 
 	return NilObject, nil
 }

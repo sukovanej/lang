@@ -39,26 +39,26 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "else": 86,
     "or": 87,
     "and": 88,
-    "+": 90,
-    "-": 90,
-    "/": 100,
-    "*": 100,
-    "%": 100,
-    "^": 110,
-    "==": 115,
-    "is": 115,
-    // FUNCTION CALL, INDEX : 120
-    ".": 130,
+    "==": 89,
+    "is": 90,
+    "+": 100,
+    "-": 100,
+    "/": 110,
+    "*": 110,
+    "%": 110,
+    "^": 120,
+    // FUNCTION CALL, INDEX : 130
+    ".": 140,
 }
 
 func GetWeight(value *Token) uint {
     switch value.Type {
-    case SPECIAL_FUNCTION_CALL: return 120
+    case SPECIAL_FUNCTION_CALL: return 130
     case SPECIAL_TUPLE: return 60
     case SPECIAL_FOR: return 30
     case SPECIAL_TYPE: return 30
     case SPECIAL_COND: return 30
-    case SPECIAL_INDEX: return 120
+    case SPECIAL_INDEX: return 130
     default:
         if w, ok := BuiltInWeights[value.Value]; ok {
             return w
