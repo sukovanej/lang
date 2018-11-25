@@ -82,9 +82,28 @@ Lambda can be assigned to a symbol. Also special syntax `<function-name>(<args>)
 # TODO
 
  - [ ] decorators
- - [ ] iterators
+ ```
+ @decorator
+ fn(x) -> x
+ ```
+ - [x] iterators
  - [ ] unpacking
  ```
  f(x) -> (x, x + 1)
  x, y = f(1)
+ ```
+ - [ ] integrated unittests
+ ```
+ $ cat test.lang
+ fn(x) -> x + 1
+ test_fn() -> {
+     assert(fn(1) == 2)
+     assert(fn(10) == 11)
+ }
+ $ lang --test
+ # TODO: some result
+ ```
+ - [ ] variadic arguments, named arguments
+ ```
+ TODO: not sure about the syntax at the moment
  ```
