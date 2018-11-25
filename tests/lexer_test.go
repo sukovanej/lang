@@ -847,6 +847,10 @@ func TestGetNextTokenSimpleGetItem(t *testing.T) {
     token, _ = GetNextToken(inputBuffer)
     expected = NewToken("]", BRACKET_RIGHT)
     if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("", EOF)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
 }
 
 func TestGetNextTokenNameWithNumber(t *testing.T) {
@@ -862,6 +866,10 @@ func TestGetNextTokenNameWithNumber(t *testing.T) {
 
     token, _ = GetNextToken(inputBuffer)
     expected = NewToken("1", NUMBER)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("", EOF)
     if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
 }
 
@@ -902,5 +910,29 @@ func TestGetNextTokenSimpleGetItemAfterBracket(t *testing.T) {
 
     token, _ = GetNextToken(inputBuffer)
     expected = NewToken("]", BRACKET_RIGHT)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("", EOF)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+}
+
+func TestGetNextTokenEmptyMap(t *testing.T) {
+    inputBuffer := NewReaderWithPosition(strings.NewReader(`l = {}`))
+
+    token, _ := GetNextToken(inputBuffer)
+    expected := NewToken("l", IDENTIFIER)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("=", SIGN)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("", SPECIAL_MAP_INIT)
+    if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
+
+    token, _ = GetNextToken(inputBuffer)
+    expected = NewToken("", EOF)
     if !compareToken(token, expected) { t.Errorf("%v != %v.", token, expected) }
 }

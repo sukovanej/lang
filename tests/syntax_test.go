@@ -964,6 +964,20 @@ func TestGetNextASTEmptyList(t *testing.T) {
     if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
 }
 
+func TestGetNextASTEmptyMap(t *testing.T) {
+    inputBuffer := NewReaderWithPosition(strings.NewReader(`l = {}`))
+
+    ast, _ := GetNextAST(inputBuffer)
+
+    expected := &AST{
+        Left: &AST{Value: NewToken("l", IDENTIFIER)},
+        Right: &AST{Value: NewToken("", SPECIAL_MAP_INIT)},
+        Value: NewToken("=", SIGN),
+    }
+
+    if !CompareAST(ast, expected) { t.Errorf("%v != %v.", ast, expected) }
+}
+
 func TestGetNextASTLambdasAsArguments(t *testing.T) {
     inputBuffer := NewReaderWithPosition(strings.NewReader(`
         print((x) -> x, (y) -> y)

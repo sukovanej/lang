@@ -46,6 +46,21 @@ func compareObjects(o1, o2 *Object) bool {
 		n2, _ := o2.GetFloat(nil)
 
 		return n1 == n2 && o1.Type == o2.Type
+	} else if o1.Type == TYPE_MAP {
+		n1, _ := o1.GetMap(nil)
+		n2, _ := o2.GetMap(nil)
+
+        if len(n1) != len(n2) {
+            return false
+        }
+
+        for hash, value := range n1 {
+            if !compareObjects(n2[hash][0], value[0]) || !compareObjects(n2[hash][1], value[1]) {
+                return false
+            }
+        }
+
+		return o1.Type == o2.Type
 	} else if o1.Type == TYPE_TUPLE {
 		n1, _ := o1.GetTuple(nil)
 		n2, _ := o2.GetTuple(nil)

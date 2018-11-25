@@ -147,6 +147,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 		} else {
             return nil, NewRuntimeError("unknown error", ast.Value)
 		}
+    } else if ast.Value.Type == SPECIAL_MAP_INIT {
+        return NewMapObject(make(MapObject))
     } else if ast.Value.Type == SPECIAL_LIST {
         var objectList [](*Object)
         var err *RuntimeError
@@ -548,6 +550,7 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, *RuntimeError)
     function := NewCallable(func (arguments [](*Object), innerScope *Scope, ast *AST) (*Object, *RuntimeError) {
         localScope := NewScope(scope)
         argumentNames, err := getFormalArguments(formalArguments, []string{})
+
         if err != nil {
             NewRuntimeErrorTraceback(ast.Value)
             return nil, err

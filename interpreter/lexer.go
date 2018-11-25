@@ -75,6 +75,7 @@ const (
     SPECIAL_INDEX
     SPECIAL_FOR
     SPECIAL_COND
+    SPECIAL_MAP_INIT
 )
 
 func (t *Token) String() string {
@@ -109,6 +110,7 @@ func (t *TokenType) String() string {
         case SPECIAL_INDEX: return "SPECIAL_INDEX"
         case SPECIAL_FOR: return "SPECIAL_FOR"
         case SPECIAL_COND: return "SPECIAL_COND"
+        case SPECIAL_MAP_INIT: return "SPECIAL_MAP_INIT"
     }
 
     return "???"
@@ -250,7 +252,10 @@ func GetNextToken(buffer *ReaderWithPosition) (*Token, error) {
                 newType = GetTokenType(newValue)
             }
 
-            if previousValue == '(' && newValue == ')' {
+            if previousValue == '{' && newType == BRACKET_RIGHT && newValue == '}' {
+                previousType = SPECIAL_MAP_INIT
+                valueBuffer.Reset()
+            } else if previousValue == '(' && newValue == ')' {
                 previousType = SPECIAL_NO_ARGUMENTS
                 valueBuffer.Reset()
             } else {

@@ -602,3 +602,16 @@ func TestEvaluateEqualOrGreater(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateEmpty(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        {}
+    `)), scope)
+
+    expected, _ := NewMapObject(make(MapObject))
+
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v", obj)
+    }
+}
