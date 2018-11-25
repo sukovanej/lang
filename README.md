@@ -78,3 +78,13 @@ Lambda can be assigned to a symbol. Also special syntax `<function-name>(<args>)
 >>> g(1)
 0
 ```
+
+# TODO
+
+ - [ ] decorators
+ - [ ] iterators
+ - [ ] unpacking
+ ```
+ f(x) -> (x, x + 1)
+ x, y = f(1)
+ ```
