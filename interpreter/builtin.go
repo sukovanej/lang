@@ -138,38 +138,47 @@ func BuiltInBinary (name string, input [](*Object), scope *Scope, ast *AST) (*Ob
 }
 
 func BuiltInPlus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__plus__", input, scope, ast)
 }
 
 func BuiltInMinus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__minus__", input, scope, ast)
 }
 
 func BuiltInAsterisk(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__asterisk__", input, scope, ast)
 }
 
 func BuiltInSlash(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__slash__", input, scope, ast)
 }
 
 func BuiltInModulo(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__modulo__", input, scope, ast)
 }
 
 func BuiltInPower(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__power__", input, scope, ast)
 }
 
 func BuiltInEqualCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__equal__", input, scope, ast)
 }
 
 func BuiltInGreaterCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__greater__", input, scope, ast)
 }
 
 func BuiltInLessCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__less__", input, scope, ast)
 }
 
@@ -194,6 +203,7 @@ func NewCallable(callable ObjectCallable) (*Object) {
 }
 
 func BuiltInDotForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     object, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
@@ -201,6 +211,7 @@ func BuiltInDotForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeEr
 }
 
 func BuiltInDefineForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     leftSide := input[0]
 
     value, err := evaluateAST(input[1], scope)
@@ -237,6 +248,8 @@ func BuiltInPrint(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeE
 }
 
 func BuiltInStr(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
+
     stringObject, err := input[0].GetStringRepresentation(scope, ast)
     if err != nil { return nil, err }
 
@@ -244,6 +257,7 @@ func BuiltInStr(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeErr
 }
 
 func BuiltInFunctionScope(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 0 { return nil, NewRuntimeError(fmt.Sprintf("0 argument expected, %d given", len(input)), ast.Value) }
     scopeMap := make(MapObject)
 
     for name, valueObject := range scope.Symbols {
@@ -260,10 +274,12 @@ func BuiltInFunctionScope(input [](*Object), scope *Scope, ast *AST) (*Object, *
 }
 
 func BuiltInMeta(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
     return input[0].GetMetaObject(), nil
 }
 
 func BuiltInAssert(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
     if input[0] != TrueObject {
         return NilObject, NewRuntimeError("AssertError", ast.Value)
     }
@@ -271,6 +287,7 @@ func BuiltInAssert(input [](*Object), scope *Scope, ast *AST) (*Object, *Runtime
 }
 
 func BuiltInImport(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
     importPathListObject, err := scope.SearchSymbol("IMPORT_PATH", ast)
     if err != nil { return nil, err }
 
@@ -331,6 +348,7 @@ func BuiltInIf(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) 
 }
 
 func BuiltInSlots(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
     scopeMap := make(MapObject)
 
     for name, valueObject := range input[0].Slots {
@@ -347,6 +365,7 @@ func BuiltInSlots(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeE
 }
 
 func BuiltInAndForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     lhs, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
@@ -361,6 +380,7 @@ func BuiltInAndForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeEr
 }
 
 func BuiltInOrForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     lhs, err := evaluateAST(input[0], scope)
     if err != nil { return nil, err }
 
@@ -375,6 +395,7 @@ func BuiltInOrForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeErr
 }
 
 func BuiltInIs(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return NewBoolObject(input[0].Meta == input[1])
 }
 
