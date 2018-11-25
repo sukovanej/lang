@@ -118,7 +118,6 @@ func (object *Object) GetSlot(name string, ast *AST) (*Object, *RuntimeError) {
         if slot, ok := current.Slots[name]; ok {
             return slot, nil
         } else if current == MetaObject && current.GetMetaObject() == MetaObject {
-            fmt.Println("the end")
             return nil, NewRuntimeError(name + " not found", ast.Value)
         }
 
@@ -128,68 +127,50 @@ func (object *Object) GetSlot(name string, ast *AST) (*Object, *RuntimeError) {
     return nil, NewRuntimeError(name + " not found", ast.Value)
 }
 
+func BuiltInBinary (name string, input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    operatorSlot, err := input[0].GetSlot(name, ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := operatorSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+}
+
 func BuiltInPlus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    operatorSlot, err := input[0].GetSlot("__plus__", ast)
-    if err != nil { return nil, err}
-
-    callSlot, err := operatorSlot.GetSlot("__call__", ast)
-    if err != nil { return nil, err}
-
-    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+    return BuiltInBinary("__plus__", input, scope, ast)
 }
+
 func BuiltInMinus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    operatorSlot, err := input[0].GetSlot("__minus__", ast)
-    if err != nil { return nil, err}
-
-    callSlot, err := operatorSlot.GetSlot("__call__", ast)
-    if err != nil { return nil, err}
-
-    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+    return BuiltInBinary("__minus__", input, scope, ast)
 }
+
 func BuiltInAsterisk(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    operatorSlot, err := input[0].GetSlot("__asterisk__", ast)
-    if err != nil { return nil, err}
-
-    callSlot, err := operatorSlot.GetSlot("__call__", ast)
-    if err != nil { return nil, err}
-
-    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+    return BuiltInBinary("__asterisk__", input, scope, ast)
 }
+
 func BuiltInSlash(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    operatorSlot, err := input[0].GetSlot("__slash__", ast)
-    if err != nil { return nil, err}
-
-    callSlot, err := operatorSlot.GetSlot("__call__", ast)
-    if err != nil { return nil, err}
-
-    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+    return BuiltInBinary("__slash__", input, scope, ast)
 }
+
 func BuiltInModulo(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    operatorSlot, err := input[0].GetSlot("__modulo__", ast)
-    if err != nil { return nil, err}
-
-    callSlot, err := operatorSlot.GetSlot("__call__", ast)
-    if err != nil { return nil, err}
-
-    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+    return BuiltInBinary("__modulo__", input, scope, ast)
 }
+
 func BuiltInPower(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    operatorSlot, err := input[0].GetSlot("__power__", ast)
-    if err != nil { return nil, err}
-
-    callSlot, err := operatorSlot.GetSlot("__call__", ast)
-    if err != nil { return nil, err}
-
-    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+    return BuiltInBinary("__power__", input, scope, ast)
 }
+
 func BuiltInEqualCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
-    operatorSlot, err := input[0].GetSlot("__equal__", ast)
-    if err != nil { return nil, err}
+    return BuiltInBinary("__equal__", input, scope, ast)
+}
 
-    callSlot, err := operatorSlot.GetSlot("__call__", ast)
-    if err != nil { return nil, err}
+func BuiltInGreaterCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return BuiltInBinary("__greater__", input, scope, ast)
+}
 
-    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+func BuiltInLessCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return BuiltInBinary("__less__", input, scope, ast)
 }
 
 func NewBinaryOperatorObject(name string, callable ObjectCallable) (*Object) {
@@ -419,6 +400,8 @@ var BuiltInScope = &Scope{
         "=": NewBinaryFormObject("=", BuiltInDefineForm),
         ".": NewBinaryFormObject(".", BuiltInDotForm),
         "==": NewBinaryOperatorObject("==", BuiltInEqualCompare),
+        ">": NewBinaryOperatorObject(">", BuiltInGreaterCompare),
+        "<": NewBinaryOperatorObject("<", BuiltInLessCompare),
 
         "if": NewBinaryFormObject("if", BuiltInIf),
         //"else": NewBinaryFormObject("else", BuiltInElse),

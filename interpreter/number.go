@@ -72,6 +72,20 @@ func BuiltInNumberEqualCompare(arguments [](*Object), scope *Scope, ast *AST) (*
     }
 }
 
+func BuiltInNumberGreater(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
+
+    return NewBoolObject(left_value > right_value)
+}
+
+func BuiltInNumberLess(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetNumber(ast)
+    right_value, _ := arguments[1].GetNumber(ast)
+
+    return NewBoolObject(left_value < right_value)
+}
+
 func NewNumberObject(value int64) (*Object, *RuntimeError) {
     return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
         "__plus__": NewCallable(BuiltInNumberPlus),
@@ -82,5 +96,7 @@ func NewNumberObject(value int64) (*Object, *RuntimeError) {
         "__power__": NewCallable(BuiltInNumberPower),
         "__hash__": NewCallable(NumberObjectHash),
         "__equal__": NewCallable(BuiltInNumberEqualCompare),
+        "__greater__": NewCallable(BuiltInNumberGreater),
+        "__less__": NewCallable(BuiltInNumberLess),
     }), nil
 }

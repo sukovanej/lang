@@ -490,3 +490,25 @@ func TestEvaluateCondStatemen3(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateGreaterOperator(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        1 > 2 or 1.2 > 1.3
+    `)), scope)
+
+    if !compareObjects(obj, FalseObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateLessOperator(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        1 < 2 and 1.2 < 1.3
+    `)), scope)
+
+    if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}

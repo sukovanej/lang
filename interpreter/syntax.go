@@ -40,6 +40,8 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "or": 87,
     "and": 88,
     "==": 89,
+    ">": 89,
+    "<": 89,
     "is": 90,
     "+": 100,
     "-": 100,
@@ -123,17 +125,13 @@ func GetAST(value interface{}) *AST {
         return nil
     }
 
-    fmt.Printf("%T", value)
     panic("value is not Token or AST")
 }
 
 func GetNextAST(buffer *ReaderWithPosition) (*AST, error) {
 	removeTrailingWhitespaces(buffer)
     result, err := getNextAST(buffer, nil)
-
-    if err != nil {
-        fmt.Println("ERROR: ", err)
-    }
+    if err != nil { return nil, err }
 
     return result, err
 }

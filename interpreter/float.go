@@ -67,6 +67,20 @@ func BuiltInFloatEqualCompare(arguments [](*Object), scope *Scope, ast *AST) (*O
     }
 }
 
+func BuiltInFloatGreater(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetFloat(ast)
+    right_value, _ := arguments[1].GetFloat(ast)
+
+    return NewBoolObject(left_value > right_value)
+}
+
+func BuiltInFloatLess(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    left_value, _ := arguments[0].GetFloat(ast)
+    right_value, _ := arguments[1].GetFloat(ast)
+
+    return NewBoolObject(left_value < right_value)
+}
+
 func NewFloatObject(value float64) (*Object, *RuntimeError) {
     return NewObject(TYPE_FLOAT, value, FloatMetaObject, map[string](*Object) {
         "__plus__": NewCallable(BuiltInFloatPlus),
@@ -76,5 +90,7 @@ func NewFloatObject(value float64) (*Object, *RuntimeError) {
         "__power__": NewCallable(BuiltInFloatPower),
         "__hash__": NewCallable(FloatObjectHash),
         "__equal__": NewCallable(BuiltInFloatEqualCompare),
+        "__greater__": NewCallable(BuiltInFloatGreater),
+        "__less__": NewCallable(BuiltInFloatLess),
     }), nil
 }
