@@ -194,6 +194,28 @@ func BuiltInLessCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *Ru
     return BuiltInBinary("__less__", input, scope, ast)
 }
 
+func BuiltInEqualOrGreaterCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    isLess, err := BuiltInGreaterCompare(input, scope, ast)
+    if err != nil { return nil, err }
+
+    if isLess != TrueObject {
+        return BuiltInEqualCompare(input, scope, ast)
+    } else {
+        return TrueObject, nil
+    }
+}
+
+func BuiltInEqualOrLessCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    isLess, err := BuiltInLessCompare(input, scope, ast)
+    if err != nil { return nil, err }
+
+    if isLess != TrueObject {
+        return BuiltInEqualCompare(input, scope, ast)
+    } else {
+        return TrueObject, nil
+    }
+}
+
 func NewBinaryOperatorObject(name string, callable ObjectCallable) (*Object) {
 	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object) {
         "__binary__": NewObject(TYPE_OBJECT, callable, nil, nil),
@@ -439,6 +461,8 @@ var BuiltInScope = &Scope{
         "!=": NewBinaryOperatorObject("==", BuiltInNotEqualCompare),
         ">": NewBinaryOperatorObject(">", BuiltInGreaterCompare),
         "<": NewBinaryOperatorObject("<", BuiltInLessCompare),
+        ">=": NewBinaryOperatorObject(">=", BuiltInEqualOrGreaterCompare),
+        "<=": NewBinaryOperatorObject("<=", BuiltInEqualOrLessCompare),
 
         "if": NewBinaryFormObject("if", BuiltInIf),
         //"else": NewBinaryFormObject("else", BuiltInElse),

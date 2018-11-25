@@ -557,7 +557,7 @@ func TestEvaluateRangeIterator(t *testing.T) {
 
             __next__(self) -> {
                 self.current = self.current + 1
-                self.current if self.current < self.to or self.current == self.to else IteratorStopError
+                self.current if self.current <= self.to else IteratorStopError
             }
         }
 
@@ -580,3 +580,26 @@ func TestEvaluateRangeIterator(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateEqualOrLess(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        2 <= 3 and 3 <= 3
+    `)), scope)
+
+    if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateEqualOrGreater(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        3 >= 2 and 3 >= 3
+    `)), scope)
+
+    if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
