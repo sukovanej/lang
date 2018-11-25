@@ -1,0 +1,38 @@
+type Vec {
+    __init__(self, x, y, z) -> {
+        self.x = x
+        self.y = y
+        self.z = z
+    }
+
+    multiply_scalar(self, c) -> Vec(self.x * c, self.y * c, self.z * c)
+
+    __string__(self) -> "(" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ")"
+
+    __plus__(v1, v2) -> Vec(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z)
+
+    __asterisk__(v1, v2) -> {
+        cond {
+            (v2 is number or v2 is float) and v1 is Vec: v1.multiply_scalar(v2)
+            default: {
+                v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+            }
+        }
+    }
+
+    __equal__(v1, v2) -> v1.x == v2.x and v1.y == v2.y and v1.z == v2.z
+}
+
+vec_1 = Vec(1, 2, 3)
+vec_2 = Vec(1, 2, 3)
+
+new_vec = vec_1 + vec_2
+assert(new_vec == Vec(2, 4, 6))
+
+scalar_product = vec_1 * vec_2
+assert(scalar_product == 14)
+
+vec_3 = vec_1 * 2
+assert(vec_3 == Vec(2, 4, 6))
+
+assert(vec_3 + vec_2 + vec_1 == Vec(4, 8, 12))
