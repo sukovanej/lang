@@ -1,0 +1,16 @@
+plus_one(f) -> ((x) -> f(x) + 1)
+
+plus_one @ fn(x) -> x
+
+assert(fn(1) == 2)
+
+pow(fn) -> {
+    (x) -> {
+        r = fn(x) 
+        r * r
+    }
+}
+
+pow @ fn_2(x) -> x
+
+assert(fn_2(2) == 4)
