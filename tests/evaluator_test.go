@@ -545,3 +545,38 @@ func TestEvaluateNotEqualListFalse(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateRangeIterator(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        type range {
+            __init__(self, from, to) -> {
+                self.current = from - 1
+                self.to = to
+            }
+
+            __next__(self) -> {
+                self.current = self.current + 1
+                self.current if self.current < self.to or self.current == self.to else IteratorStopError
+            }
+        }
+
+        result = []
+
+        for x <- range(1, 3) {
+            result.add(x)
+        }
+
+        result
+    `)), scope)
+
+	expected := &Object{Value: [](*Object){
+        &Object{Value: int64(1), Type: TYPE_NUMBER},
+        &Object{Value: int64(2), Type: TYPE_NUMBER},
+        &Object{Value: int64(3), Type: TYPE_NUMBER},
+    }, Type: TYPE_LIST}
+
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v", obj)
+    }
+}

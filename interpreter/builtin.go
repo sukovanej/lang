@@ -422,6 +422,9 @@ func GenerateImportPath() *Object {
     return importPath
 }
 
+var ErrorObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<Error>") })
+var IteratorStopErrorObject = NewObject(TYPE_OBJECT, nil, ErrorObject, map[string](*Object) { "__string__": createStringObject("<Error>") })
+
 var BuiltInScope = &Scope{
     Symbols: map[string](*Object){
         "+": NewBinaryOperatorObject("+", BuiltInPlus),
@@ -464,6 +467,9 @@ var BuiltInScope = &Scope{
         "assert": NewCallable(BuiltInAssert),
         "import": NewCallable(BuiltInImport),
         "slots": NewCallable(BuiltInSlots),
+
+        "Error": ErrorObject,
+        "IteratorStopError": IteratorStopErrorObject,
 
         "IMPORT_PATH": GenerateImportPath(),
     },

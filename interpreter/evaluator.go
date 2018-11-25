@@ -387,6 +387,31 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             }
 
             return last, nil
+        } else if nextSlot, err := listObject.GetSlot("__next__", ast); err == nil {
+            nextCallable, err := nextSlot.GetSlot("__call__", ast)
+            if err != nil { return nil, err }
+            var last *Object
+
+            for {
+                value, err := nextCallable.Value.(ObjectCallable)([](*Object){ listObject }, scope, ast)
+
+                if err != nil {
+                    NewRuntimeErrorTraceback(ast.Value)
+                    return nil, err
+                } else if value == IteratorStopErrorObject {
+                    break
+                }
+
+                forScope.Symbols[symbol] = value
+                last, err = evaluateAST(block, forScope)
+
+                if err != nil {
+                    NewRuntimeErrorTraceback(ast.Value)
+                    return nil, err
+                }
+            }
+
+            return last, nil
         }
 
         panic("Not implemented yet :(")
