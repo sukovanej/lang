@@ -118,7 +118,7 @@ func (object *Object) GetSlot(name string, ast *AST) (*Object, *RuntimeError) {
         if slot, ok := current.Slots[name]; ok {
             return slot, nil
         } else if current == MetaObject && current.GetMetaObject() == MetaObject {
-            return nil, NewRuntimeError(name + " not found", ast.Value)
+            return nil, NewRuntimeErrorWithoutPrint("slot \u001b[33m" + name + "\u001b[0m not found", ast.Value)
         }
 
         current = current.GetMetaObject()
@@ -458,7 +458,7 @@ var BuiltInScope = &Scope{
         "=": NewBinaryFormObject("=", BuiltInDefineForm),
         ".": NewBinaryFormObject(".", BuiltInDotForm),
         "==": NewBinaryOperatorObject("==", BuiltInEqualCompare),
-        "!=": NewBinaryOperatorObject("==", BuiltInNotEqualCompare),
+        "!=": NewBinaryOperatorObject("!=", BuiltInNotEqualCompare),
         ">": NewBinaryOperatorObject(">", BuiltInGreaterCompare),
         "<": NewBinaryOperatorObject("<", BuiltInLessCompare),
         ">=": NewBinaryOperatorObject(">=", BuiltInEqualOrGreaterCompare),

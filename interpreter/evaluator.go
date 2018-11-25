@@ -81,9 +81,13 @@ func (scope *Scope) SearchSymbol(name string, ast *AST) (*Object, *RuntimeError)
     }
 }
 
+func NewRuntimeErrorWithoutPrint(msg string, token *Token) *RuntimeError {
+    return &RuntimeError{msg, token}
+}
+
 func NewRuntimeError(msg string, token *Token) *RuntimeError {
     fmt.Printf("\u001b[31mRuntime error\u001b[0m: %s, line \u001b[32m%d\u001b[0m, column \u001b[32m%d\u001b[0m\n", msg, token.Line, token.Column)
-    return &RuntimeError{msg, token}
+    return NewRuntimeErrorWithoutPrint(msg, token)
 }
 
 func NewRuntimeErrorTraceback(token *Token) {
@@ -92,7 +96,7 @@ func NewRuntimeErrorTraceback(token *Token) {
 
 func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError, *AST) {
     ast, err := GetNextAST(buffer)
-    if err != nil { return nil, NewRuntimeError("syntax error", nil), ast }
+    if err != nil { return nil, NewRuntimeError("syntax error", ast.Value), ast }
 
     obj, runtimeErr := evaluateAST(ast, scope)
 
@@ -190,24 +194,15 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         }
 
         if ast.Left != nil && ast.Right != nil {
-            if callable, ok := object.Slots["__binary__"]; ok {
-                if form, ok :=callable.Slots["__form__"]; ok && form == TrueObject {
-                    return callable.Value.(ObjectFormCallable)(
-                        [](*AST){ ast.Left, ast.Right },
-                        scope,
-                        ast,
-                    )
+            if callable, err := object.GetSlot("__binary__", ast); err == nil {
+                if form, err := callable.GetSlot("__form__", ast); err == nil && form == TrueObject {
+                    return callable.Value.(ObjectFormCallable)([](*AST){ ast.Left, ast.Right }, scope, ast)
                 } else {
                     left, err := evaluateAST(ast.Left, scope)
-                    if err != nil {
-                        NewRuntimeErrorTraceback(ast.Value)
-                        return nil, err
-                    }
+                    if err != nil { return nil, err }
+
                     right, err := evaluateAST(ast.Right, scope)
-                    if err != nil {
-                        NewRuntimeErrorTraceback(ast.Value)
-                        return nil, err
-                    }
+                    if err != nil { return nil, err }
 
                     return callable.Value.(ObjectCallable)([](*Object){ left, right }, scope, ast)
                 }
@@ -264,12 +259,12 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 
         if ast.Left.Value.Type == SIGN && ast.Left.Value.Value == "." {
             selfObject, err := evaluateAST(ast.Left.Left, scope)
-            if err != nil {
-                NewRuntimeErrorTraceback(ast.Value)
-                return nil, err
-            }
+            if err != nil { return nil, err }
+
             argumentsTuple = append(argumentsTuple, selfObject)
-            callableObject = selfObject.Slots[ast.Left.Right.Value.Value]
+
+            callableObject, err = selfObject.GetSlot(ast.Left.Right.Value.Value, ast)
+            if err != nil { return nil, err }
         } else {
             callableObject, err = evaluateAST(ast.Left, scope)
             if err != nil {
@@ -315,7 +310,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             }
         }
 
-        if callable, ok := callableObject.Slots["__call__"]; ok {
+        if callable, err := callableObject.GetSlot("__call__", ast); err == nil {
             arguments, err := argumentsObject.GetTuple(ast)
             if err != nil {
                 NewRuntimeErrorTraceback(ast.Value)
@@ -343,9 +338,11 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             return nil, err
         }
 
-        if callable, ok := mapObject.Slots["__index__"]; ok {
-            callableObject := callable.Slots["__call__"].Value.(ObjectCallable)
-            return callableObject([](*Object){ mapObject, indexObject }, scope, ast)
+        if callable, err := mapObject.GetSlot("__index__", ast); err == nil {
+            callableObject, err := callable.GetSlot("__call__", ast)
+            if err != nil { return nil, err }
+
+            return callableObject.Value.(ObjectCallable)([](*Object){ mapObject, indexObject }, scope, ast)
         } else {
             return nil, NewRuntimeError("__index__ not found", ast.Value)
         }
