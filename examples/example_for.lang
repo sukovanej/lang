@@ -1,0 +1,32 @@
+l = [1, 2, 3, 4]
+new_list = []
+
+f = (x) -> x * x
+
+for x <- l {
+    new_list.add(f(x))
+}
+
+assert(new_list == [1, 4, 9, 16])
+
+type range {
+    __init__(self, from, to, step) -> {
+        self.current = from - step
+        self.to = to
+        self.step = step
+    }
+
+    __next__(self) -> {
+        self.current = self.current + self.step
+        self.current if self.current <= self.to else IteratorStopError
+    }
+}
+
+iterator = range(0, 10, 2)
+result = []
+
+for i <- iterator {
+    result.add(i)
+}
+
+assert(result == [0, 2, 4, 6, 8, 10])
