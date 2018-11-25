@@ -172,6 +172,18 @@ func BuiltInEqualCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *R
     return BuiltInBinary("__equal__", input, scope, ast)
 }
 
+func BuiltInNotEqualCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    result, err := BuiltInEqualCompare(input, scope, ast)
+
+    if err != nil {
+        return nil, nil
+    } else if result == TrueObject {
+        return FalseObject, nil
+    } else {
+        return TrueObject, nil
+    }
+}
+
 func BuiltInGreaterCompare(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     return BuiltInBinary("__greater__", input, scope, ast)
@@ -421,6 +433,7 @@ var BuiltInScope = &Scope{
         "=": NewBinaryFormObject("=", BuiltInDefineForm),
         ".": NewBinaryFormObject(".", BuiltInDotForm),
         "==": NewBinaryOperatorObject("==", BuiltInEqualCompare),
+        "!=": NewBinaryOperatorObject("==", BuiltInNotEqualCompare),
         ">": NewBinaryOperatorObject(">", BuiltInGreaterCompare),
         "<": NewBinaryOperatorObject("<", BuiltInLessCompare),
 

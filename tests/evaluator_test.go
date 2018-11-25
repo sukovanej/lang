@@ -512,3 +512,36 @@ func TestEvaluateLessOperator(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateEqualList(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        [1, 2, 3] == [1, 2, 3]
+    `)), scope)
+
+    if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateEqualListFalse(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        [1, 2, 3] == [1, 2, 3, 4]
+    `)), scope)
+
+    if !compareObjects(obj, FalseObject) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateNotEqualListFalse(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        [1, 2, 3] != [1, 2, 3, 4]
+    `)), scope)
+
+    if !compareObjects(obj, TrueObject) {
+        t.Errorf("%v", obj)
+    }
+}

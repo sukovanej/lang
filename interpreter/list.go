@@ -59,9 +59,34 @@ func ListObjectAdd(arguments [](*Object), scope *Scope, ast *AST) (*Object, *Run
     return obj, nil
 }
 
+func ListObjectEqual(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    lhs, err := arguments[0].GetList(ast)
+    if err != nil { return nil, err }
+
+    rhs, err := arguments[1].GetList(ast)
+    if err != nil { return nil, err }
+
+    if len(rhs) != len(lhs) {
+        return FalseObject, nil
+    }
+
+    for i, _ := range lhs {
+        result, err := BuiltInEqualCompare([](*Object){lhs[i], rhs[i]}, scope, ast)
+
+        if err != nil {
+            return nil, err
+        } else if result != TrueObject {
+            return FalseObject, nil
+        }
+    }
+
+    return TrueObject, nil
+}
+
 func NewListObject(value [](*Object)) (*Object, *RuntimeError) {
     return NewObject(TYPE_LIST, value, ListMetaObject, map[string](*Object) {
         "__string__": NewCallable(ListObjectString),
+        "__equal__": NewCallable(ListObjectEqual),
         "__index__": NewCallable(ListObjectIndex),
         "add": NewCallable(ListObjectAdd),
     }), nil

@@ -75,7 +75,7 @@ func (scope *Scope) SearchSymbol(name string, ast *AST) (*Object, *RuntimeError)
     }
 
     if scope.Parent == nil {
-        return nil, NewRuntimeError("symbol \u001b[33;1m" + name + "\u001b[0m not found", ast.Value)
+        return nil, NewRuntimeError("symbol \u001b[33m" + name + "\u001b[0m not found", ast.Value)
     } else {
         return scope.Parent.SearchSymbol(name, ast)
     }
@@ -87,7 +87,7 @@ func NewRuntimeError(msg string, token *Token) *RuntimeError {
 }
 
 func NewRuntimeErrorTraceback(token *Token) {
-    fmt.Printf("    \u001b[31;1mTraceback\u001b[0m: near %s line \u001b[32m%d\u001b[0m, column \u001b[32m%d\u001b[0m\n", token.Value, token.Line, token.Column)
+    fmt.Printf("    \u001b[31mTraceback\u001b[0m: near %s line \u001b[32m%d\u001b[0m, column \u001b[32m%d\u001b[0m\n", token.Value, token.Line, token.Column)
 }
 
 func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError, *AST) {
@@ -109,18 +109,18 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         number, _err := strconv.ParseInt(ast.Value.Value, 0, 64)
 
         if _err != nil {
-            return nil, NewRuntimeError("cant convert \u001b[33;1m" + ast.Value.Value + "\u001b[0m to number type", ast.Value)
+            return nil, NewRuntimeError("cant convert \u001b[33m" + ast.Value.Value + "\u001b[0m to number type", ast.Value)
         }
 
         object, err := NewNumberObject(number)
 		if err != nil {
-            return nil, NewRuntimeError("cant convert \u001b[33;1m" + ast.Value.Value + "\u001b[0m to number type", ast.Value)
+            return nil, NewRuntimeError("cant convert \u001b[33m" + ast.Value.Value + "\u001b[0m to number type", ast.Value)
         }
 
 		return object, nil
     } else if ast.Value.Type == FLOAT_NUMBER {
 		number, _err := strconv.ParseFloat(ast.Value.Value, 64)
-        if _err != nil { return nil, NewRuntimeError("cant convert \u001b[33;1m" + ast.Value.Value + "\u001b[0m to float type", ast.Value) }
+        if _err != nil { return nil, NewRuntimeError("cant convert \u001b[33m" + ast.Value.Value + "\u001b[0m to float type", ast.Value) }
 
         object, err := NewFloatObject(number)
         if err != nil {
@@ -325,7 +325,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             return callable.Value.(ObjectCallable)(arguments, scope, ast)
         }
 
-        return nil, NewRuntimeError("\u001b[33;1m" + ast.Left.Value.Value + "\u001b[0m is not callable", ast.Value)
+        return nil, NewRuntimeError("\u001b[33m" + ast.Left.Value.Value + "\u001b[0m is not callable", ast.Value)
 	} else if ast.Value.Type == SPECIAL_INDEX {
         mapObject, err := evaluateAST(ast.Left, scope)
         if err != nil {
@@ -414,7 +414,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         }
     }
 
-    return nil, NewRuntimeError("undefined syntax : \u001b[33;1m" + ast.String() + "\u001b[0m", ast.Value)
+    return nil, NewRuntimeError("undefined syntax : \u001b[33m" + ast.String() + "\u001b[0m", ast.Value)
 }
 
 func evaluateASTMap(ast *AST, scope *Scope, objectMap MapObject) (MapObject, *RuntimeError) {
