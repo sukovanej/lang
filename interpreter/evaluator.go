@@ -545,7 +545,7 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, *RuntimeError)
         formalArguments = left
     }
 
-    function := NewCallable(func (arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    function := NewCallable(func (arguments [](*Object), innerScope *Scope, ast *AST) (*Object, *RuntimeError) {
         localScope := NewScope(scope)
         argumentNames, err := getFormalArguments(formalArguments, []string{})
         if err != nil {

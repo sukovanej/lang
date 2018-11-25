@@ -602,4 +602,3 @@ func TestEvaluateEqualOrGreater(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
-

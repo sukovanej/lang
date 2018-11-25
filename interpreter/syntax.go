@@ -33,6 +33,7 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "<-": 40,
     ",": 50,
     // TUPLE : 60
+    "@": 65,
     "->": 70,
     ":": 80,
     "if": 85,

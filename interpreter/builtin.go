@@ -266,6 +266,29 @@ func BuiltInDefineForm(input [](*AST), scope *Scope, ast *AST) (*Object, *Runtim
 	return value, nil
 }
 
+func BuiltInDecoratorForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
+
+    decorator, err := evaluateAST(input[0], scope)
+    if err != nil { return nil, err }
+
+    function, err := evaluateAST(input[1], scope)
+    if err != nil { return nil, err }
+
+    decoratorCallable, err := decorator.GetSlot("__call__", ast)
+    if err != nil { return nil, err }
+
+    result, err := decoratorCallable.Value.(ObjectCallable)([](*Object){function}, scope, ast)
+    if err != nil { return nil, err }
+
+    if input[1].Left.Value.Type == SPECIAL_FUNCTION_CALL {
+        name := input[1].Left.Left.Value.Value
+        scope.Symbols[name] = result
+    }
+
+    return result, nil
+}
+
 func BuiltInPrint(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     for _, obj := range input {
         strObject, err := obj.GetStringRepresentation(scope, ast)
@@ -445,7 +468,7 @@ func GenerateImportPath() *Object {
 }
 
 var ErrorObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<Error>") })
-var IteratorStopErrorObject = NewObject(TYPE_OBJECT, nil, ErrorObject, map[string](*Object) { "__string__": createStringObject("<Error>") })
+var IteratorStopErrorObject = NewObject(TYPE_OBJECT, nil, ErrorObject, map[string](*Object) { "__string__": createStringObject("<IteratorStopError>") })
 
 var BuiltInScope = &Scope{
     Symbols: map[string](*Object){
@@ -455,14 +478,16 @@ var BuiltInScope = &Scope{
         "/": NewBinaryOperatorObject("/", BuiltInSlash),
         "%": NewBinaryOperatorObject("%", BuiltInModulo),
         "^": NewBinaryOperatorObject("^", BuiltInPower),
-        "=": NewBinaryFormObject("=", BuiltInDefineForm),
-        ".": NewBinaryFormObject(".", BuiltInDotForm),
         "==": NewBinaryOperatorObject("==", BuiltInEqualCompare),
         "!=": NewBinaryOperatorObject("!=", BuiltInNotEqualCompare),
         ">": NewBinaryOperatorObject(">", BuiltInGreaterCompare),
         "<": NewBinaryOperatorObject("<", BuiltInLessCompare),
         ">=": NewBinaryOperatorObject(">=", BuiltInEqualOrGreaterCompare),
         "<=": NewBinaryOperatorObject("<=", BuiltInEqualOrLessCompare),
+
+        "=": NewBinaryFormObject("=", BuiltInDefineForm),
+        ".": NewBinaryFormObject(".", BuiltInDotForm),
+        "@": NewBinaryFormObject("decorator", BuiltInDecoratorForm),
 
         "if": NewBinaryFormObject("if", BuiltInIf),
         //"else": NewBinaryFormObject("else", BuiltInElse),
