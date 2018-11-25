@@ -9,7 +9,7 @@ func (o *Object) GetNumber(ast *AST) (int64, *RuntimeError) {
     if number, ok := o.Value.(int64); ok {
         return number, nil
     } else {
-        return 0, NewRuntimeError(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value), nil)
+        return 0, NewRuntimeError(fmt.Sprintf("Cant convert %s to number", ast.Value), ast.Value)
     }
 }
 

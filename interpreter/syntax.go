@@ -46,6 +46,7 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "%": 100,
     "^": 110,
     "==": 115,
+    "is": 115,
     // FUNCTION CALL, INDEX : 120
     ".": 130,
 }

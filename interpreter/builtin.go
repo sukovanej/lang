@@ -392,6 +392,10 @@ func BuiltInOrForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeErr
     return rhs, nil
 }
 
+func BuiltInIs(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    return NewBoolObject(input[0].Meta == input[1])
+}
+
 func GenerateImportPath() *Object {
     cwd, _ := filepath.Abs(filepath.Dir(os.Args[0]))
     cwdString, _ := NewStringObject(cwd)
@@ -432,6 +436,8 @@ var BuiltInScope = &Scope{
 
         "and": NewBinaryFormObject("and", BuiltInAndForm),
         "or": NewBinaryFormObject("or", BuiltInOrForm),
+
+        "is": NewBinaryOperatorObject("is", BuiltInIs),
 
         "meta": NewCallable(BuiltInMeta),
         "print": NewCallable(BuiltInPrint),
