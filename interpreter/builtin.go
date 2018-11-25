@@ -114,15 +114,18 @@ var FalseObject = NewObject(TYPE_BOOL, false, BoolMetaObject, map[string](*Objec
 func (object *Object) GetSlot(name string, ast *AST) (*Object, *RuntimeError) {
     current := object
 
-    for {
+    for i := 0; i < 20; i++ {
         if slot, ok := current.Slots[name]; ok {
             return slot, nil
         } else if current == MetaObject && current.GetMetaObject() == MetaObject {
+            fmt.Println("the end")
             return nil, NewRuntimeError(name + " not found", ast.Value)
         }
 
-        current = object.GetMetaObject()
+        current = current.GetMetaObject()
     }
+
+    return nil, NewRuntimeError(name + " not found", ast.Value)
 }
 
 func BuiltInPlus(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {

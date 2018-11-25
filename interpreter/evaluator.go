@@ -288,7 +288,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         if ast.Left != nil { return nil, NewRuntimeError("syntax error: cond shouldn't have lhs", ast.Value) }
         if ast.Right.Value.Type != SPECIAL_BLOCK { return nil, NewRuntimeError("syntax error: { expected", ast.Value) }
 
-        return CondBlock(ast.Right.Left, scope)
+        result, err, _ := CondBlock(ast.Right.Left, scope)
+        return result, err
 	} else if ast.Value.Type == SPECIAL_FOR {
         block := ast.Right
         listObject, err := evaluateAST(ast.Left.Right, scope)
@@ -431,26 +432,36 @@ func CreateFunction(left *AST, body *AST, scope *Scope) (*Object, *RuntimeError)
     return function, nil
 }
 
-func CondBlock(ast *AST, scope *Scope) (*Object, *RuntimeError) {
-    cond, err := evaluateAST(ast.Left.Left, scope)
-    if err != nil { return nil, err }
+func CondBlock(ast *AST, scope *Scope) (*Object, *RuntimeError, bool) {
+    if ast.Value.Value == ":" {
+        if ast.Left.Value.Value == "default" {
+            result, err := evaluateAST(ast.Right, scope)
+            return result, err, true
+        }
 
-    if cond == TrueObject {
-        return evaluateAST(ast.Left.Right, scope)
-    } else if cond == FalseObject {
-        if ast.Right.Value.Type == NEWLINE {
+        cond, err := evaluateAST(ast.Left, scope)
+
+        if err != nil {
+            return nil, err, false
+        } else if cond == FalseObject {
+            return NilObject, nil, false
+        } else if cond == TrueObject {
+            result, err := evaluateAST(ast.Right, scope)
+            return result, err, true
+        } else {
+            return nil, NewRuntimeError("need bool value", ast.Value), false
+        }
+    } else if ast.Value.Type == NEWLINE {
+        result, err, value := CondBlock(ast.Left, scope)
+
+        if err != nil {
+            return nil, err, false
+        } else if value {
+            return result, nil, true
+        } else {
             return CondBlock(ast.Right, scope)
-        } else if ast.Right.Value.Type == SIGN && ast.Right.Value.Value == ":" {
-            cond, err := evaluateAST(ast.Right.Left, scope)
-            if err != nil { return nil, err }
-
-            if cond == TrueObject {
-                return evaluateAST(ast.Right.Right, scope)
-            } else {
-                return NilObject, nil
-            }
         }
     }
 
-    return nil, NewRuntimeError("condition must be bool", ast.Value)
+    return nil, NewRuntimeError("unknown error", ast.Value), false
 }

@@ -475,3 +475,18 @@ func TestEvaluateCondStatemen2(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateCondStatemen3(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        cond {
+            1 == 0 and (1 == 0 or 0 == 0): 0
+            1 == 0: 0
+            1 == 1: 1
+        }
+    `)), scope)
+
+    if !compareObjects(obj, &Object{Value: int64(1), Type: TYPE_NUMBER}) {
+        t.Errorf("%v", obj)
+    }
+}
