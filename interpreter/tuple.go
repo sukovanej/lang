@@ -18,7 +18,7 @@ func TupleObjectString(arguments [](*Object), scope *Scope, ast *AST) (*Object, 
 
     result := "("
     for _, item := range tuple {
-        stringReprObject, err := item.Slots["__string__"].Slots["__call__"].Value.(ObjectCallable)([](*Object){item}, scope, ast)
+        stringReprObject, err := item.GetStringRepresentation(scope, ast)
         if err != nil { return nil, err }
         stringRepr, err := stringReprObject.GetString(ast)
         if err != nil { return nil, err }
