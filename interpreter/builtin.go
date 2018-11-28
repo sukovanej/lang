@@ -114,7 +114,7 @@ var FalseObject = NewObject(TYPE_BOOL, false, BoolMetaObject, map[string](*Objec
 func (object *Object) GetSlot(name string, ast *AST) (*Object, *RuntimeError) {
     current := object
 
-    for i := 0; i < 20; i++ {
+    for {
         if slot, ok := current.Slots[name]; ok {
             return slot, nil
         } else if current == MetaObject && current.GetMetaObject() == MetaObject {
@@ -453,7 +453,20 @@ func BuiltInOrForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeErr
 
 func BuiltInIs(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
-    return NewBoolObject(input[0].Meta == input[1])
+
+    meta := input[0]
+
+    for {
+        if input[0].Meta == input[1] {
+            return TrueObject, nil
+        } else if meta == MetaObject && meta.GetMetaObject() == MetaObject {
+            break
+        }
+
+        meta = meta.GetMetaObject()
+    }
+
+    return FalseObject, nil
 }
 
 func GenerateImportPath() *Object {
