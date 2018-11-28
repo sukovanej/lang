@@ -356,46 +356,34 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         return result, err
 	} else if ast.Value.Type == SPECIAL_FOR {
         block := ast.Right
-        listObject, err := evaluateAST(ast.Left.Right, scope)
-        if err != nil {
-            NewRuntimeErrorTraceback(ast.Value)
-            return nil, err
-        }
+
+        iterableObject, err := evaluateAST(ast.Left.Right, scope)
+        if err != nil { return nil, err }
 
         symbol := ast.Left.Left.Value.Value
 
         forScope := NewScope(scope)
         forScope.Symbols[symbol] = nil
 
-        if listObject.Type == TYPE_LIST {
-            forInput, err := listObject.GetList(ast)
-            if err != nil {
-                NewRuntimeErrorTraceback(ast.Value)
-                return nil, err
-            }
+        if iterSlot, err := iterableObject.GetSlot("__iter__", ast); err == nil {
+            iterCallable, err := iterSlot.GetSlot("__call__", ast)
+            if err != nil { return nil, err }
 
-            var last *Object = NilObject
+            iteratorObject, err := iterCallable.Value.(ObjectCallable)([](*Object){ iterableObject }, scope, ast)
+            if err != nil { return nil, err }
 
-            for _, item := range forInput {
-                forScope.Symbols[symbol] = item
-                last, err = evaluateAST(block, forScope)
-                if err != nil {
-                    NewRuntimeErrorTraceback(ast.Value)
-                    return nil, err
-                }
-            }
+            nextSlot, err := iteratorObject.GetSlot("__next__", ast)
+            if err != nil { return nil, err }
 
-            return last, nil
-        } else if nextSlot, err := listObject.GetSlot("__next__", ast); err == nil {
             nextCallable, err := nextSlot.GetSlot("__call__", ast)
             if err != nil { return nil, err }
+
             var last *Object
 
             for {
-                value, err := nextCallable.Value.(ObjectCallable)([](*Object){ listObject }, scope, ast)
+                value, err := nextCallable.Value.(ObjectCallable)([](*Object){ iteratorObject }, scope, ast)
 
                 if err != nil {
-                    NewRuntimeErrorTraceback(ast.Value)
                     return nil, err
                 } else if value == IteratorStopErrorObject {
                     break
@@ -411,9 +399,9 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             }
 
             return last, nil
+        } else {
+            return nil, NewRuntimeError("object is not itarable", ast.Value)
         }
-
-        panic("Not implemented yet :(")
 	} else if ast.Value.Type == SPECIAL_BLOCK {
         if ast.Left.Value.Type == SIGN && (ast.Left.Value.Value == ":" || ast.Left.Value.Value == ",") {
             objectMap := make(MapObject)

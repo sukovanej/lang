@@ -552,7 +552,13 @@ func TestEvaluateRangeIterator(t *testing.T) {
         type range {
             __init__(self, from, to) -> {
                 self.current = from - 1
+                self.from = from
                 self.to = to
+            }
+
+            __iter__(self) -> {
+                self.current = self.from - 1
+                self
             }
 
             __next__(self) -> {

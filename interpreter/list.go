@@ -83,9 +83,41 @@ func ListObjectEqual(arguments [](*Object), scope *Scope, ast *AST) (*Object, *R
     return TrueObject, nil
 }
 
+func ListObjectIter(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    self := arguments[0]
+    zero, _ := NewNumberObject(0)
+    self.Slots["_current"] = zero
+
+    return self, nil
+}
+
+func ListObjectNext(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    self := arguments[0]
+
+    if indexObject, err := self.GetSlot("_current", ast); err == nil {
+        index, err := indexObject.GetNumber(ast)
+        if err != nil { return nil, err }
+
+        list, err := self.GetList(ast)
+        if err != nil { return nil, err }
+
+        if int(index) < len(list) {
+            item := list[index]
+            newIndex, _ := NewNumberObject(index + 1)
+            self.Slots["_current"] = newIndex
+
+            return item, nil
+        }
+    }
+
+    return IteratorStopErrorObject, nil
+}
+
 func NewListObject(value [](*Object)) (*Object, *RuntimeError) {
     return NewObject(TYPE_LIST, value, ListMetaObject, map[string](*Object) {
         "__string__": NewCallable(ListObjectString),
+        "__iter__": NewCallable(ListObjectIter),
+        "__next__": NewCallable(ListObjectNext),
         "__equal__": NewCallable(ListObjectEqual),
         "__index__": NewCallable(ListObjectIndex),
         "add": NewCallable(ListObjectAdd),

@@ -11,14 +11,21 @@ assert(new_list == [1, 4, 9, 16])
 
 type range {
     __init__(self, from, to, step) -> {
-        self.current = from - step
+        self._current = from - step
+
+        self.from = from
         self.to = to
         self.step = step
     }
 
+    __iter__(self) -> {
+        self._current = self.from - self.step
+        self
+    }
+
     __next__(self) -> {
-        self.current = self.current + self.step
-        self.current if self.current <= self.to else IteratorStopError
+        self._current = self._current + self.step
+        self._current if self._current <= self.to else IteratorStopError
     }
 }
 
