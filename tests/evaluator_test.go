@@ -404,7 +404,7 @@ func TestEvaluateFactorial(t *testing.T) {
 func TestEvaluateAndStatement(t *testing.T) {
     scope := NewScope(BuiltInScope)
     obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
-        true and true
+        True and True
     `)), scope)
 
     if !compareObjects(obj, TrueObject) {
@@ -415,7 +415,7 @@ func TestEvaluateAndStatement(t *testing.T) {
 func TestEvaluateAndAndStatement(t *testing.T) {
     scope := NewScope(BuiltInScope)
     obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
-        true and true and false
+        True and True and False
     `)), scope)
 
     if !compareObjects(obj, FalseObject) {
@@ -426,7 +426,7 @@ func TestEvaluateAndAndStatement(t *testing.T) {
 func TestEvaluateOrAndAndStatement(t *testing.T) {
     scope := NewScope(BuiltInScope)
     obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
-        true or true and false
+        True or True and False
     `)), scope)
 
     if !compareObjects(obj, TrueObject) {

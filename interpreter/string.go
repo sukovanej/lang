@@ -22,11 +22,11 @@ func (obj *Object) GetStringRepresentation(scope *Scope, ast *AST) (*Object, *Ru
             if err != nil { return nil, err }
         }
     } else if obj == NilObject {
-        stringObject, err = NewStringObject("nil")
+        stringObject, err = NewStringObject("Nil")
     } else if obj == TrueObject {
-        stringObject, err = NewStringObject("true")
+        stringObject, err = NewStringObject("True")
     } else if obj == FalseObject {
-        stringObject, err = NewStringObject("false")
+        stringObject, err = NewStringObject("False")
     } else if obj.Type == TYPE_NUMBER {
         number, err := obj.GetNumber(ast)
         if err != nil { return nil, err }

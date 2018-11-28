@@ -503,7 +503,6 @@ var BuiltInScope = &Scope{
         "@": NewBinaryFormObject("decorator", BuiltInDecoratorForm),
 
         "if": NewBinaryFormObject("if", BuiltInIf),
-        //"else": NewBinaryFormObject("else", BuiltInElse),
 
         "object": MetaObject,
         "number": NumberMetaObject,
@@ -513,9 +512,9 @@ var BuiltInScope = &Scope{
         "map": MapMetaObject,
         "tuple": TupleMetaObject,
 
-        "true": TrueObject,
-        "false": FalseObject,
-        "nil": NilObject,
+        "True": TrueObject,
+        "False": FalseObject,
+        "Nil": NilObject,
 
         "and": NewBinaryFormObject("and", BuiltInAndForm),
         "or": NewBinaryFormObject("or", BuiltInOrForm),
