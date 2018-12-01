@@ -621,3 +621,21 @@ func TestEvaluateEmpty(t *testing.T) {
         t.Errorf("%v", obj)
     }
 }
+
+func TestEvaluateListFourValuesWithEmptyList(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        [1, 1, [], 1]
+    `)), scope)
+
+	expected := &Object{Value: [](*Object){
+        &Object{Value: int64(1), Type: TYPE_NUMBER},
+        &Object{Value: int64(1), Type: TYPE_NUMBER},
+        &Object{Value: [](*Object){}, Type: TYPE_LIST},
+        &Object{Value: int64(1), Type: TYPE_NUMBER},
+    }, Type: TYPE_LIST}
+
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v", obj)
+    }
+}

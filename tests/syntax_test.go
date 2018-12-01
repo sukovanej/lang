@@ -957,7 +957,7 @@ func TestGetNextASTEmptyList(t *testing.T) {
 
     expected := &AST{
         Left: &AST{Value: NewToken("l", IDENTIFIER)},
-        Right: &AST{Value: NewToken("", SPECIAL_LIST)},
+        Right: &AST{Value: NewToken("", SPECIAL_LIST_INIT)},
         Value: NewToken("=", SIGN),
     }
 

@@ -147,6 +147,8 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 		} else {
             return nil, NewRuntimeError("unknown error", ast.Value)
 		}
+    } else if ast.Value.Type == SPECIAL_LIST_INIT {
+        return NewListObject([](*Object){})
     } else if ast.Value.Type == SPECIAL_MAP_INIT {
         return NewMapObject(make(MapObject))
     } else if ast.Value.Type == SPECIAL_LIST {

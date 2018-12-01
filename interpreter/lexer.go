@@ -55,11 +55,6 @@ const (
 
     SIGN
 
-    KEYWORD_AND
-    KEYWORD_OR
-    KEYWORD_NULL
-    KEYWORD_FN
-
     BRACKET_LEFT
     BRACKET_RIGHT
 
@@ -76,6 +71,7 @@ const (
     SPECIAL_FOR
     SPECIAL_COND
     SPECIAL_MAP_INIT
+    SPECIAL_LIST_INIT
 )
 
 func (t *Token) String() string {
@@ -92,10 +88,6 @@ func (t *TokenType) String() string {
         case FLOAT_NUMBER: return "FLOAT_NUMBER"
         case UNDERSCORE: return "UNDERSCORE"
         case SIGN: return "SIGN"
-        case KEYWORD_AND: return "KEYWORD_AND"
-        case KEYWORD_OR: return "KEYWORD_OR"
-        case KEYWORD_NULL: return "KEYWORD_NULL"
-        case KEYWORD_FN: return "KEYWORD_FN"
         case BRACKET_LEFT: return "BRACKET_LEFT"
         case BRACKET_RIGHT: return "BRACKET_RIGHT"
         case NEWLINE: return "NEWLINE"
@@ -111,6 +103,7 @@ func (t *TokenType) String() string {
         case SPECIAL_FOR: return "SPECIAL_FOR"
         case SPECIAL_COND: return "SPECIAL_COND"
         case SPECIAL_MAP_INIT: return "SPECIAL_MAP_INIT"
+        case SPECIAL_LIST_INIT: return "SPECIAL_LIST_INIT"
     }
 
     return "???"
@@ -254,6 +247,9 @@ func GetNextToken(buffer *ReaderWithPosition) (*Token, error) {
 
             if previousValue == '{' && newType == BRACKET_RIGHT && newValue == '}' {
                 previousType = SPECIAL_MAP_INIT
+                valueBuffer.Reset()
+            } else if previousValue == '[' && newType == BRACKET_RIGHT && newValue == ']' {
+                previousType = SPECIAL_LIST_INIT
                 valueBuffer.Reset()
             } else if previousValue == '(' && newValue == ')' {
                 previousType = SPECIAL_NO_ARGUMENTS
