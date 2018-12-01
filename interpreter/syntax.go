@@ -52,8 +52,7 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "*": 110,
     "%": 110,
     "^": 120,
-    // FUNCTION CALL, INDEX : 130
-    ".": 140,
+    ".": 130, // FUNCTION CALL, INDEX : 130
 }
 
 func GetWeight(value *Token) uint {

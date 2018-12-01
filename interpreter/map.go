@@ -78,8 +78,8 @@ func MapObjectLen(arguments [](*Object), scope *Scope, ast *AST) (*Object, *Runt
 
 func NewMapObject(value MapObject) (*Object, *RuntimeError) {
     return NewObject(TYPE_MAP, value, MapMetaObject, map[string](*Object) {
-        "__string__": NewCallable(MapObjectString),
-        "__index__": NewCallable(MapObjectIndex),
-        "len": NewCallable(MapObjectLen),
+        "__string__": NewMethod(MapObjectString),
+        "__index__": NewMethod(MapObjectIndex),
+        "len": NewMethod(MapObjectLen),
     }), nil
 }

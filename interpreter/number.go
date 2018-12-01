@@ -88,15 +88,15 @@ func BuiltInNumberLess(arguments [](*Object), scope *Scope, ast *AST) (*Object, 
 
 func NewNumberObject(value int64) (*Object, *RuntimeError) {
     return NewObject(TYPE_NUMBER, value, NumberMetaObject, map[string](*Object) {
-        "__plus__": NewCallable(BuiltInNumberPlus),
-        "__minus__": NewCallable(BuiltInNumberMinus),
-        "__asterisk__": NewCallable(BuiltInNumberAsterisk),
-        "__slash__": NewCallable(BuiltInNumberSlash),
-        "__modulo__": NewCallable(BuiltInNumberModulo),
-        "__power__": NewCallable(BuiltInNumberPower),
-        "__hash__": NewCallable(NumberObjectHash),
-        "__equal__": NewCallable(BuiltInNumberEqualCompare),
-        "__greater__": NewCallable(BuiltInNumberGreater),
-        "__less__": NewCallable(BuiltInNumberLess),
+        "__plus__": NewMethod(BuiltInNumberPlus),
+        "__minus__": NewMethod(BuiltInNumberMinus),
+        "__asterisk__": NewMethod(BuiltInNumberAsterisk),
+        "__slash__": NewMethod(BuiltInNumberSlash),
+        "__modulo__": NewMethod(BuiltInNumberModulo),
+        "__power__": NewMethod(BuiltInNumberPower),
+        "__hash__": NewMethod(NumberObjectHash),
+        "__equal__": NewMethod(BuiltInNumberEqualCompare),
+        "__greater__": NewMethod(BuiltInNumberGreater),
+        "__less__": NewMethod(BuiltInNumberLess),
     }), nil
 }

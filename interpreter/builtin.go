@@ -236,6 +236,13 @@ func NewCallable(callable ObjectCallable) (*Object) {
     })
 }
 
+func NewMethod(callable ObjectCallable) (*Object) {
+	return NewObject(TYPE_CALLABLE, nil, nil, map[string](*Object) {
+        "__call__": NewObject(TYPE_OBJECT, callable, nil, nil),
+        "__method__": TrueObject,
+    })
+}
+
 func BuiltInDotForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     object, err := evaluateAST(input[0], scope)
@@ -421,6 +428,35 @@ func BuiltInSlots(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeE
 	return NewMapObject(scopeMap)
 }
 
+func BuiltInId(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
+    return NewStringObject(fmt.Sprintf("%p", input[0]))
+}
+
+func BuiltInIter(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
+
+    iterSlot, err := input[0].GetSlot("__iter__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := iterSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+}
+
+func BuiltInNext(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    if len(input) != 1 { return nil, NewRuntimeError(fmt.Sprintf("1 argument expected, %d given", len(input)), ast.Value) }
+
+    nextSlot, err := input[0].GetSlot("__next__", ast)
+    if err != nil { return nil, err}
+
+    callSlot, err := nextSlot.GetSlot("__call__", ast)
+    if err != nil { return nil, err}
+
+    return callSlot.Value.(ObjectCallable)(input, scope, ast)
+}
+
 func BuiltInAndForm(input [](*AST), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     if len(input) != 2 { return nil, NewRuntimeError(fmt.Sprintf("2 arguments expected, %d given", len(input)), ast.Value) }
     lhs, err := evaluateAST(input[0], scope)
@@ -457,7 +493,7 @@ func BuiltInIs(input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeErro
     meta := input[0]
 
     for {
-        if input[0].Meta == input[1] {
+        if meta == input[1] {
             return TrueObject, nil
         } else if meta == MetaObject && meta.GetMetaObject() == MetaObject {
             break
@@ -528,6 +564,9 @@ var BuiltInScope = &Scope{
         "assert": NewCallable(BuiltInAssert),
         "import": NewCallable(BuiltInImport),
         "slots": NewCallable(BuiltInSlots),
+        "id": NewCallable(BuiltInId),
+        "iter": NewCallable(BuiltInIter),
+        "next": NewCallable(BuiltInNext),
 
         "Error": ErrorObject,
         "IteratorStopError": IteratorStopErrorObject,

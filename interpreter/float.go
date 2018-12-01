@@ -8,8 +8,6 @@ import (
 func (o *Object) GetFloat(ast *AST) (float64, *RuntimeError) {
     if number, ok := o.Value.(float64); ok {
         return number, nil
-    } else if number, ok := o.Value.(int64); ok {
-        return float64(number), nil
     } else {
         return 0, NewRuntimeError(fmt.Sprintf("Cant convert %q to number", o.Value), ast.Value)
     }
@@ -83,14 +81,14 @@ func BuiltInFloatLess(arguments [](*Object), scope *Scope, ast *AST) (*Object, *
 
 func NewFloatObject(value float64) (*Object, *RuntimeError) {
     return NewObject(TYPE_FLOAT, value, FloatMetaObject, map[string](*Object) {
-        "__plus__": NewCallable(BuiltInFloatPlus),
-        "__minus__": NewCallable(BuiltInFloatMinus),
-        "__asterisk__": NewCallable(BuiltInFloatAsterisk),
-        "__slash__": NewCallable(BuiltInFloatSlash),
-        "__power__": NewCallable(BuiltInFloatPower),
-        "__hash__": NewCallable(FloatObjectHash),
-        "__equal__": NewCallable(BuiltInFloatEqualCompare),
-        "__greater__": NewCallable(BuiltInFloatGreater),
-        "__less__": NewCallable(BuiltInFloatLess),
+        "__plus__": NewMethod(BuiltInFloatPlus),
+        "__minus__": NewMethod(BuiltInFloatMinus),
+        "__asterisk__": NewMethod(BuiltInFloatAsterisk),
+        "__slash__": NewMethod(BuiltInFloatSlash),
+        "__power__": NewMethod(BuiltInFloatPower),
+        "__hash__": NewMethod(FloatObjectHash),
+        "__equal__": NewMethod(BuiltInFloatEqualCompare),
+        "__greater__": NewMethod(BuiltInFloatGreater),
+        "__less__": NewMethod(BuiltInFloatLess),
     }), nil
 }

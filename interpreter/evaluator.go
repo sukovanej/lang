@@ -96,7 +96,7 @@ func NewRuntimeErrorTraceback(token *Token) {
 
 func Evaluate(buffer *ReaderWithPosition, scope *Scope) (*Object, *RuntimeError, *AST) {
     ast, err := GetNextAST(buffer)
-    if err != nil { return nil, NewRuntimeError("syntax error", ast.Value), ast }
+    if err != nil { return NilObject, NewRuntimeError("SyntaxError", ast.Value), ast }
 
     obj, runtimeErr := evaluateAST(ast, scope)
 
@@ -234,10 +234,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         if ast.Left.Value.Value == ":" {
             name = ast.Left.Left.Value.Value
             parent, err = evaluateAST(ast.Left.Right, scope)
-            if err != nil {
-                NewRuntimeErrorTraceback(ast.Value)
-                return nil, err
-            }
+            if err != nil { return nil, err }
         } else {
             name = ast.Left.Value.Value
         }
@@ -246,6 +243,12 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
         if err != nil {
             NewRuntimeErrorTraceback(ast.Value)
             return nil, err
+        }
+
+        for _, value := range localScope.Symbols {
+            if value.Type == TYPE_CALLABLE {
+                value.Slots["__method__"] = TrueObject
+            }
         }
 
         object := NewObject(TYPE_META, block, nil, localScope.Symbols)
@@ -263,16 +266,20 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             selfObject, err := evaluateAST(ast.Left.Left, scope)
             if err != nil { return nil, err }
 
-            argumentsTuple = append(argumentsTuple, selfObject)
-
             callableObject, err = selfObject.GetSlot(ast.Left.Right.Value.Value, ast)
             if err != nil { return nil, err }
+
+            if m, ok := callableObject.Slots["__method__"]; ok {
+                isMethod, err := m.GetBool(ast)
+                if err != nil { return nil, err }
+
+                if isMethod {
+                    argumentsTuple = append(argumentsTuple, selfObject)
+                }
+            }
         } else {
             callableObject, err = evaluateAST(ast.Left, scope)
-            if err != nil {
-                NewRuntimeErrorTraceback(ast.Value)
-                return nil, err
-            }
+            if err != nil { return nil, err }
         }
 
         if callableObject.Type == TYPE_OBJECT || callableObject.Type == TYPE_META {
@@ -285,10 +292,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 
         if ast.Right.Value.Type != SPECIAL_NO_ARGUMENTS {
             argumentsObject, err = evaluateAST(ast.Right, scope)
-            if err != nil {
-                NewRuntimeErrorTraceback(ast.Value)
-                return nil, err
-            }
+            if err != nil { return nil, err }
         }
 
         if argumentsObject == nil {

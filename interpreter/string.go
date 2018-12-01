@@ -35,7 +35,7 @@ func (obj *Object) GetStringRepresentation(scope *Scope, ast *AST) (*Object, *Ru
     } else if obj.Type == TYPE_FLOAT {
         number, err := obj.GetFloat(ast)
         if err != nil { return nil, err }
-        stringObject, err = NewStringObject(strconv.FormatFloat(number, 'E', -1, 10))
+        stringObject, err = NewStringObject(fmt.Sprintf("%f", number))
         if err != nil { return nil, err }
     } else if obj == BoolMetaObject {
         stringObject, err = NewStringObject("<bool>")
@@ -107,8 +107,8 @@ func StringObjectHash(arguments [](*Object), scope *Scope, ast *AST) (*Object, *
 
 func NewStringObject(value string) (*Object, *RuntimeError) {
     return NewObject(TYPE_STRING, value, StringMetaObject, map[string](*Object) {
-        "__plus__": NewCallable(BuiltInStringPlus),
-        "__equal__": NewCallable(BuiltInStringEqualCompare),
-        "__hash__": NewCallable(StringObjectHash),
+        "__plus__": NewMethod(BuiltInStringPlus),
+        "__equal__": NewMethod(BuiltInStringEqualCompare),
+        "__hash__": NewMethod(StringObjectHash),
     }), nil
 }

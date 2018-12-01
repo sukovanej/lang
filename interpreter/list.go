@@ -8,7 +8,7 @@ func (o *Object) GetList(ast *AST) ([](*Object), *RuntimeError) {
     if tuple, ok := o.Value.([](*Object)); ok {
         return tuple, nil
     } else {
-        return nil, NewRuntimeError(fmt.Sprintf("Cant convert %v (%T) to number", o.Value, o.Value), ast.Value)
+        return nil, NewRuntimeError(fmt.Sprintf("Cant convert %v to list", o.Value), ast.Value)
     }
 }
 
@@ -115,11 +115,11 @@ func ListObjectNext(arguments [](*Object), scope *Scope, ast *AST) (*Object, *Ru
 
 func NewListObject(value [](*Object)) (*Object, *RuntimeError) {
     return NewObject(TYPE_LIST, value, ListMetaObject, map[string](*Object) {
-        "__string__": NewCallable(ListObjectString),
-        "__iter__": NewCallable(ListObjectIter),
-        "__next__": NewCallable(ListObjectNext),
-        "__equal__": NewCallable(ListObjectEqual),
-        "__index__": NewCallable(ListObjectIndex),
-        "add": NewCallable(ListObjectAdd),
+        "__string__": NewMethod(ListObjectString),
+        "__iter__": NewMethod(ListObjectIter),
+        "__next__": NewMethod(ListObjectNext),
+        "__equal__": NewMethod(ListObjectEqual),
+        "__index__": NewMethod(ListObjectIndex),
+        "add": NewMethod(ListObjectAdd),
     }), nil
 }
