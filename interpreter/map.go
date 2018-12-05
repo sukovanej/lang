@@ -64,7 +64,8 @@ func MapObjectIndex(arguments [](*Object), scope *Scope, ast *AST) (*Object, *Ru
     if err != nil { return nil, err }
 
     value, ok := mapObject[hash]
-    if !ok { return nil, NewRuntimeError("Runtime error: index not found.", nil) }
+    if !ok { return IndexErrorObject, nil }
+
     return value[1], nil
 }
 

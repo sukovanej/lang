@@ -9,75 +9,85 @@ import (
 )
 
 func TestEvaluateNumberExpression(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("4")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("4")), scope)
     expected := &Object{Value: int64(4), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateFloatExpression(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3.2")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3.2")), scope)
     expected := &Object{Value: float64(3.2), Type: TYPE_FLOAT}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateSimplePlusExpression(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3 + 3")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("3 + 3")), scope)
     expected := &Object{Value: int64(6), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateMultipleOperators(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 3")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 3")), scope)
     expected := &Object{Value: int64(4), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateMultipleOperatorsWithParentheses(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 2*(3 + 2)")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("1+2*3 - 2*(3 + 2)")), scope)
     expected := &Object{Value: int64(-3), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateSlashOperatorWithParentheses(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 / (1 + 2)")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 / (1 + 2)")), scope)
     expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluatePowerOperatorWithParentheses(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 ^ 2")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("9 ^ 2")), scope)
     expected := &Object{Value: float64(81), Type: TYPE_FLOAT}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
 }
 
 func TestEvaluateDefineSimple(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`x = 1 + 2`)), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`x = 1 + 2`)), scope)
 
 	expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
-    if !compareObjects(BuiltInScope.Symbols["x"], expected) {
+    if !compareObjects(scope.Symbols["x"], expected) {
 		t.Errorf("%v != %v.", obj, expected)
 	}
 }
 
 func TestEvaluateDefineTwoVariables(t *testing.T) {
+    scope := NewScope(BuiltInScope)
     obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
 x = 1 + 2
 y = x * 3 
-`)), BuiltInScope)
+`)), scope)
 
 	expected := &Object{Value: int64(3), Type: TYPE_NUMBER}
-    if !compareObjects(BuiltInScope.Symbols["x"], expected) {
+    if !compareObjects(scope.Symbols["x"], expected) {
 		t.Errorf("%v != %v.", obj, expected)
 	}
 
 	expected = &Object{Value: int64(9), Type: TYPE_NUMBER}
-    if !compareObjects(BuiltInScope.Symbols["y"], expected) {
+    if !compareObjects(scope.Symbols["y"], expected) {
 		t.Errorf("%v != %v.", obj, expected)
 	}
 }
 
 func TestEvaluateDotOperator(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("object.__string__")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("object.__string__")), scope)
 
 	expected := &Object{Value: "<object>", Type: TYPE_STRING}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }
@@ -634,6 +644,44 @@ func TestEvaluateListFourValuesWithEmptyList(t *testing.T) {
         &Object{Value: [](*Object){}, Type: TYPE_LIST},
         &Object{Value: int64(1), Type: TYPE_NUMBER},
     }, Type: TYPE_LIST}
+
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateOuterScopeUpdate(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        result = 0
+        for i <- [1] {
+            result = i
+        }
+        result
+    `)), scope)
+
+	expected := &Object{Value: int64(1), Type: TYPE_NUMBER}
+
+    if !compareObjects(obj, expected) {
+        t.Errorf("%v", obj)
+    }
+}
+
+func TestEvaluateForMap(t *testing.T) {
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
+        key = Nil
+        value = Nil
+
+        for i <- {"x": 1} {
+            key = i[0]
+            value = i[1]
+        }
+
+        key, value
+    `)), scope)
+
+	expected := &Object{Value: int64(1), Type: TYPE_NUMBER}
 
     if !compareObjects(obj, expected) {
         t.Errorf("%v", obj)

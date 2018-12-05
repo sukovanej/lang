@@ -41,12 +41,11 @@ func CopySlots(slots map[string](*Object)) map[string](*Object) {
 func BuiltInNewInstance(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
     newArguments := CopyArguments(arguments)
 
-    if initCallable, ok := newArguments[0].Slots["__init__"]; ok {
-        initCallable.Slots["__call__"].Value.(ObjectCallable)(
-            newArguments,
-            scope,
-            ast,
-        )
+    if initFunction, ok := newArguments[0].Slots["__init__"]; ok {
+        initCallable, err := initFunction.GetCallable(ast)
+        if err != nil { return nil, err }
+
+        initCallable(newArguments, scope, ast)
     }
 
     newArguments[0].Type = TYPE_OBJECT
@@ -57,17 +56,34 @@ func BuiltInNewInstance(arguments [](*Object), scope *Scope, ast *AST) (*Object,
 
 var MetaObject = &Object{Type: TYPE_OBJECT, Slots: map[string](*Object) {
     "__string__": createStringObject("<object>"),
-    "__call__": NewObject(TYPE_OBJECT, ObjectCallable(BuiltInNewInstance), nil, nil),
+    "__call__": NewObject(TYPE_CALLABLE, ObjectCallable(BuiltInNewInstance), nil, nil),
     "__equal__": NewCallable(func (input [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
         return NewBoolObject(input[0] == input[1])
     }),
 }}
 
 func (object *Object) GetMetaObject() *Object {
-    if object.Meta == nil {
+    if metaObject, ok := object.Slots["__meta__"]; ok {
+        return metaObject
+    } else if object.Meta == nil {
         return MetaObject
     }
+
     return object.Meta
+}
+
+func (object *Object) GetCallable(ast *AST) (ObjectCallable, *RuntimeError) {
+    if object.Type == TYPE_CALLABLE && object.Value != nil {
+        return object.Value.(ObjectCallable), nil
+    } else if metaObject, ok := object.Slots["__call__"]; ok {
+        if metaObject.Value == nil {
+            return metaObject.GetCallable(ast)
+        } else {
+            return metaObject.Value.(ObjectCallable), nil
+        }
+    }
+
+    return nil, NewRuntimeError("Object is not callable.", ast.Value)
 }
 
 func (object *Object) GetAttribute(name string, ast *AST) (*Object, *RuntimeError) {
@@ -265,7 +281,9 @@ func BuiltInDefineForm(input [](*AST), scope *Scope, ast *AST) (*Object, *Runtim
 
         object.Slots[symbol] = value
     } else if input[0].Left == nil && input[0].Right == nil {
-        scope.Symbols[input[0].Value.Value] = value
+		if !scope.SetSymbol(input[0].Value.Value, value) {
+            scope.Symbols[input[0].Value.Value] = value
+        }
     } else {
         return nil, NewRuntimeError("lhs must be symbol or object property", leftSide.Value)
     }
@@ -518,6 +536,7 @@ func GenerateImportPath() *Object {
 
 var ErrorObject = NewObject(TYPE_OBJECT, nil, nil, map[string](*Object) { "__string__": createStringObject("<Error>") })
 var IteratorStopErrorObject = NewObject(TYPE_OBJECT, nil, ErrorObject, map[string](*Object) { "__string__": createStringObject("<IteratorStopError>") })
+var IndexErrorObject = NewObject(TYPE_OBJECT, nil, ErrorObject, map[string](*Object) { "__string__": createStringObject("<IndexError>") })
 
 var BuiltInScope = &Scope{
     Symbols: map[string](*Object){
@@ -570,6 +589,7 @@ var BuiltInScope = &Scope{
 
         "Error": ErrorObject,
         "IteratorStopError": IteratorStopErrorObject,
+        "IndexError": IndexErrorObject,
 
         "IMPORT_PATH": GenerateImportPath(),
     },

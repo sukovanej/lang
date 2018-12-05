@@ -30,8 +30,19 @@ func TupleObjectString(arguments [](*Object), scope *Scope, ast *AST) (*Object, 
     return NewStringObject(result)
 }
 
+func TupleObjectIndex(arguments [](*Object), scope *Scope, ast *AST) (*Object, *RuntimeError) {
+    list, err := arguments[0].GetTuple(ast)
+    if err != nil { return nil, err }
+
+    index, err := arguments[1].GetNumber(ast)
+    if err != nil { return nil, err }
+
+    return list[index], nil
+}
+
 func NewTupleObject(value [](*Object)) (*Object, *RuntimeError) {
     return NewObject(TYPE_TUPLE, value, TupleMetaObject, map[string](*Object) {
         "__string__": NewMethod(TupleObjectString),
+        "__index__": NewMethod(TupleObjectIndex),
     }), nil
 }

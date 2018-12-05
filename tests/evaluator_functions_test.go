@@ -8,21 +8,25 @@ import (
 )
 
 func TestEvaluateMetaFunctionCall(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("meta(12)")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("meta(12)")), scope)
     if !compareObjects(obj, NumberMetaObject) { t.Errorf("%v != %v.", obj, NumberMetaObject) }
 
-    obj, _, _ = Evaluate(NewReaderWithPosition(strings.NewReader("meta(12.3)")), BuiltInScope)
+    scope = NewScope(BuiltInScope)
+    obj, _, _ = Evaluate(NewReaderWithPosition(strings.NewReader("meta(12.3)")), scope)
     if !compareObjects(obj, FloatMetaObject) { t.Errorf("%v != %v.", obj, FloatMetaObject) }
 }
 
 func TestEvaluateSimpleFunctionDefinitionAndCall(t *testing.T) {
-    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("f(x, y) -> x + y\nf(1,1)")), BuiltInScope)
+    scope := NewScope(BuiltInScope)
+    obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader("f(x, y) -> x + y\nf(1,1)")), scope)
 
     expected := &Object{Value: int64(2), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, FloatMetaObject) }
 }
 
 func TestEvaluateBlockFunctionDefinitionWithCall(t *testing.T) {
+    scope := NewScope(BuiltInScope)
     obj, _, _ := Evaluate(NewReaderWithPosition(strings.NewReader(`
         f(x, y) -> {
             z = x * y
@@ -30,7 +34,7 @@ func TestEvaluateBlockFunctionDefinitionWithCall(t *testing.T) {
             z - w
         }
         f(10, 5)
-    `)), BuiltInScope)
+    `)), scope)
 
     expected := &Object{Value: int64(48), Type: TYPE_NUMBER}
     if !compareObjects(obj, expected) { t.Errorf("%v != %v.", obj, expected) }

@@ -41,6 +41,7 @@ var BuiltInWeights map[string]uint = map[string]uint{
     "or": 87,
     "and": 88,
     "==": 89,
+    "!=": 89,
     ">=": 89,
     "<=": 89,
     ">": 89,

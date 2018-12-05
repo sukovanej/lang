@@ -69,6 +69,19 @@ type RuntimeError struct {
 type ObjectCallable func([](*Object), *Scope, *AST)(*Object, *RuntimeError)
 type ObjectFormCallable func([](*AST), *Scope, *AST)(*Object, *RuntimeError)
 
+func (scope *Scope) SetSymbol(name string, value *Object) bool {
+    if _, ok := scope.Symbols[name]; ok {
+        scope.Symbols[name] = value
+        return true
+    }
+
+    if scope.Parent == nil {
+        return false
+    } else {
+        return scope.Parent.SetSymbol(name, value)
+    }
+}
+
 func (scope *Scope) SearchSymbol(name string, ast *AST) (*Object, *RuntimeError) {
     if val, ok := scope.Symbols[name]; ok {
         return val, nil
@@ -135,10 +148,7 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
 		return object, nil
     } else if ast.Value.Type == IDENTIFIER && ast.Left == nil && ast.Right == nil {
 		object, err := scope.SearchSymbol(ast.Value.Value, ast)
-        if err != nil {
-            NewRuntimeErrorTraceback(ast.Value)
-            return nil, err
-        }
+        if err != nil { return nil, err }
 
 		if object != nil {
 			if ast.Left == nil && ast.Right == nil {
@@ -318,17 +328,13 @@ func evaluateAST(ast *AST, scope *Scope) (*Object, *RuntimeError) {
             }
         }
 
-        if callable, err := callableObject.GetSlot("__call__", ast); err == nil {
-            arguments, err := argumentsObject.GetTuple(ast)
-            if err != nil {
-                NewRuntimeErrorTraceback(ast.Value)
-                return nil, err
-            }
+        callable, err := callableObject.GetCallable(ast)
+        if err != nil { return nil, err }
 
-            return callable.Value.(ObjectCallable)(arguments, scope, ast)
-        }
+        arguments, err := argumentsObject.GetTuple(ast)
+        if err != nil { return nil, err }
 
-        return nil, NewRuntimeError("\u001b[33m" + ast.Left.Value.Value + "\u001b[0m is not callable", ast.Value)
+        return callable(arguments, scope, ast)
 	} else if ast.Value.Type == SPECIAL_INDEX {
         mapObject, err := evaluateAST(ast.Left, scope)
         if err != nil {
